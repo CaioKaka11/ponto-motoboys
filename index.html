@@ -1,0 +1,712 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hora de Chegada</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkhvcmEgZGUgQ2hlZ2FkYSIsCiAgInNob3J0X25hbWUiOiAiSG9yYSIsCiAgInN0YXJ0X3VybCI6ICIuLyIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBhMGEwYSIsCiAgInRoZW1lX2NvbG9yIjogIiMwMGE2ZjQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBEOTRiV3dnZG1WeWMybHZiajBpTVM0d0lpQmxibU52WkdsdVp6MGlkWFJ5YVc1blBURXdNamtpSUhodGJHNXpQU0pvZEhSd09uaHRiRzF6UDROQjVVRllRV1U5UVVFbE9pQXZQang0TkNEMVBESTBOU0EyTlRBMElERXdNVGN6SURFd01UY3pJREl4TkRVMElERXdNVGN6SURFeU5UQXdJREV3TVRjeklEQWdOaUF3SURZZ01DQXdJREJkRFFvOEwzZzBQand2UGp3dlBqd3ZQZyI+CiAgICB9CiAgXQp9">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0b0b0f;
+      --card: rgba(25, 25, 30, 0.8);
+      --glass: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #fff;
+      --text2: #ccc;
+      --neon: #00ff88;
+      --teal: #00d4ff;
+      --danger: #ff4444;
+      --warning: #ffb300;
+    }
+    body.light {
+      --bg: #f0f2f5;
+      --card: rgba(255,255,255,0.8);
+      --glass: rgba(255,255,255,0.4);
+      --border: rgba(0,0,0,0.1);
+      --text: #111;
+      --text2: #444;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; min-height: 100vh; backdrop-filter: blur(10px); transition: background 0.3s, color 0.3s; }
+    #splash { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; padding: 20px; }
+    .splash-icon { font-size: 70px; color: var(--neon); margin-bottom: 20px; }
+    .splash-msg { font-size: 16px; color: var(--neon); font-weight: 600; letter-spacing: 1.2px; min-height: 40px; }
+    .progress-bar { width: 200px; height: 4px; background: rgba(255,255,255,0.1); margin: 20px auto; border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: var(--neon); animation: fillBar 4s linear forwards; }
+    @keyframes fillBar { to { width: 100%; } }
+    #app { display: none; }
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--card); border-bottom: 1px solid var(--border); backdrop-filter: blur(20px); flex-wrap: wrap; }
+    .header h1 { font-size: 20px; }
+    .header-actions { display: flex; gap: 6px; align-items: center; }
+    .header-actions button { background: transparent; border: none; color: var(--text); font-size: 24px; cursor: pointer; padding: 6px; border-radius: 50%; transition: 0.2s; }
+    .header-actions button:hover { background: var(--glass); }
+    .presence-indicator { display: flex; align-items: center; gap: 6px; margin-left: 12px; background: var(--glass); padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+    .presence-dot { width: 10px; height: 10px; border-radius: 50%; background: #0f0; box-shadow: 0 0 8px #0f0; }
+    .container { padding: 20px; max-width: 700px; margin: 0 auto; }
+    .shift-info { background: var(--card); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .shift-info .turno { font-weight: bold; font-size: 18px; }
+    .shift-info .vagas { font-size: 14px; color: var(--teal); }
+    .input-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .input-row select, .input-row input { flex: 1; padding: 14px; background: var(--glass); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; outline: none; }
+    .btn { background: var(--neon); color: #000; border: none; padding: 14px 24px; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+    .btn:active { transform: scale(0.96); }
+    .btn.danger { background: var(--danger); }
+    .list-title { font-weight: bold; margin-bottom: 10px; color: var(--teal); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(20px); }
+    .card .info { display: flex; align-items: center; gap: 12px; }
+    .card .info i { font-size: 28px; }
+    .card .name { font-weight: bold; }
+    .card .name.presente { color: var(--neon); }
+    .card .name.ausente { color: var(--danger); }
+    .card .name.desistiu { color: var(--warning); }
+    .card .datetime { font-size: 13px; color: var(--text2); }
+    .card .discount { font-size: 13px; color: var(--warning); }
+    .admin-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .admin-actions button { background: transparent; border: 1px solid var(--teal); color: var(--teal); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    .admin-actions button.remover { border-color: var(--danger); color: var(--danger); }
+    .date-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .date-tab { background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 13px; cursor: pointer; transition: 0.2s; }
+    .date-tab.active { background: var(--teal); color: #000; border-color: var(--teal); }
+    .empty { text-align: center; padding: 40px; color: var(--text2); }
+    hr { border-color: var(--border); margin: 16px 0; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: var(--card); padding: 24px; border-radius: 16px; border: 1px solid var(--border); backdrop-filter: blur(20px); max-width: 320px; width: 90%; text-align: center; }
+    .modal-content input { width: 100%; padding: 12px; margin-bottom: 12px; background: var(--glass); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 16px; }
+    .modal-content .btn { width: 100%; justify-content: center; margin-top: 8px; }
+    .close-modal { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: var(--text2); }
+    .config-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .config-row label { flex: 1; text-align: left; }
+    .config-row input { width: 80px; text-align: center; }
+    .discount-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .discount-table th, .discount-table td { padding: 8px; border: 1px solid var(--border); text-align: left; }
+    .discount-table th { background: var(--glass); }
+  </style>
+</head>
+<body>
+<div id="splash">
+  <span class="material-icons splash-icon">motorcycle</span>
+  <div class="splash-msg" id="splashMsg">Carregando sistema de ponto...</div>
+  <div class="progress-bar"><div class="progress-fill"></div></div>
+</div>
+
+<div id="app">
+  <div class="header">
+    <h1>🏍️ Hora de Chegada</h1>
+    <div class="presence-indicator" id="presence"></div>
+    <div class="header-actions">
+      <button id="soundToggle"><span class="material-icons">volume_up</span></button>
+      <button id="themeToggle"><span class="material-icons" id="themeIcon">dark_mode</span></button>
+      <button id="loginBtn"><span class="material-icons">lock</span></button>
+      <span id="adminControls" style="display:none; gap:6px;">
+        <button id="configBtn"><span class="material-icons">settings</span></button>
+        <button id="discountsBtn"><span class="material-icons">attach_money</span></button>
+        <button id="exportExcelBtn"><span class="material-icons">table_view</span></button>
+        <button id="exportPdfBtn"><span class="material-icons">picture_as_pdf</span></button>
+        <button id="exportTxtBtn"><span class="material-icons">description</span></button>
+        <button id="historyBtn"><span class="material-icons">history</span></button>
+        <button id="backBtn" style="display:none"><span class="material-icons">arrow_back</span></button>
+        <button id="logoutBtn"><span class="material-icons">logout</span></button>
+      </span>
+    </div>
+  </div>
+
+  <!-- MODAL LOGIN -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeModal">&times;</span>
+      <h2>Login Admin</h2>
+      <input type="text" id="loginUsername" placeholder="Login">
+      <input type="password" id="loginPassword" placeholder="Senha">
+      <button class="btn" id="doLogin">Entrar</button>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIGURAÇÃO (admin) -->
+  <div id="configModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeConfigModal">&times;</span>
+      <h2>Limite de Vagas</h2>
+      <div class="config-row"><label>Manhã</label><input type="number" id="limiteManha" min="0" value="16"></div>
+      <div class="config-row"><label>Noite</label><input type="number" id="limiteNoite" min="0" value="40"></div>
+      <button class="btn" id="salvarConfig">Salvar</button>
+    </div>
+  </div>
+
+  <!-- TELA PRINCIPAL -->
+  <div id="mainView" class="container">
+    <div class="shift-info">
+      <span class="turno" id="turnoLabel">Inscrição</span>
+      <span class="vagas" id="vagasRestantes"></span>
+    </div>
+    <div class="input-row" id="inscricaoRow">
+      <select id="turnoSelect">
+        <option value="manha">Manhã</option>
+        <option value="noite">Noite</option>
+      </select>
+      <input type="text" id="nomeInput" placeholder="Seu nome" list="nomeList">
+      <datalist id="nomeList"></datalist>
+      <button class="btn" id="inscreverBtn"><span class="material-icons">how_to_reg</span> Inscrever</button>
+    </div>
+    <div class="list-title">Inscritos de hoje</div>
+    <div id="hojeList"></div>
+  </div>
+
+  <!-- TELA DESCONTOS (admin) -->
+  <div id="discountsView" class="container" style="display:none">
+    <div class="list-title">Descontos de hoje</div>
+    <div id="discountsList"></div>
+  </div>
+
+  <!-- HISTÓRICO (admin) -->
+  <div id="historyView" class="container" style="display:none">
+    <div class="list-title">Histórico</div>
+    <div class="date-tabs" id="dateTabs"></div>
+    <div id="historyDayList"></div>
+    <div style="margin-top:20px; display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn" id="exportExcelDia"><span class="material-icons">table_view</span> Excel (dia)</button>
+      <button class="btn" id="exportPdfDia"><span class="material-icons">picture_as_pdf</span> PDF (dia)</button>
+      <button class="btn" id="exportTxtDia"><span class="material-icons">description</span> TXT (dia)</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  const firebaseConfig = {
+    apiKey: "AIzaSyBp_7zJoEj6BgxSAIuWeUZHve1NgYbpxGk",
+    authDomain: "ponto-motoboy.firebaseapp.com",
+    databaseURL: "https://ponto-motoboy-default-rtdb.firebaseio.com",
+    projectId: "ponto-motoboy",
+    storageBucket: "ponto-motoboy.firebasestorage.app",
+    messagingSenderId: "526542472436",
+    appId: "1:526542472436:web:234049ec552928de3c8aa1",
+    measurementId: "G-R41TKKZSMN"
+  };
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+  
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const registrosRef = ref(database, 'registros');
+  const presenceRef = ref(database, 'presence');
+  const configRef = ref(database, 'config');
+
+  const userId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+  const userPresenceRef = ref(database, `presence/${userId}`);
+  set(userPresenceRef, { online: true, timestamp: serverTimestamp() });
+  onDisconnect(userPresenceRef).remove();
+  onValue(presenceRef, (snapshot) => {
+    const data = snapshot.val() || {};
+    const count = Object.keys(data).length;
+    document.getElementById('presence').innerHTML = `<div class="presence-dot" style="background:#0f0;"></div> ${count} ativo(s)`;
+  });
+
+  let limites = { manha: 16, noite: 40 };
+  onValue(configRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      if (data.manha !== undefined) limites.manha = data.manha;
+      if (data.noite !== undefined) limites.noite = data.noite;
+    }
+    atualizarInterface();
+  });
+
+  let db = [];
+  onValue(registrosRef, (snapshot) => {
+    if (snapshot.exists()) {
+      db = Object.values(snapshot.val());
+    } else {
+      db = [];
+    }
+    atualizarInterface();
+    updateAutocomplete();
+  });
+
+  function atualizarInterface() {
+    renderHoje();
+    if (adminLoggedIn) renderDiscounts();
+    if (document.getElementById('historyView').style.display === 'block') renderHistorico(selectedDay);
+  }
+
+  function adicionarRegistro(registro) {
+    push(registrosRef).then(newRef => set(newRef, registro));
+  }
+
+  function atualizarRegistro(id, dados) {
+    onValue(registrosRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        for (const key in data) {
+          if (data[key].id === id) {
+            set(ref(database, `registros/${key}`), dados);
+            break;
+          }
+        }
+      }
+    }, { onlyOnce: true });
+  }
+
+  function nowBrasilia() {
+    return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+  }
+
+  function formatDisplay(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const date = d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+    const time = d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    return date + ' ' + time;
+  }
+
+  function isToday(iso) {
+    if (!iso) return false;
+    const hoje = nowBrasilia();
+    const d = new Date(iso);
+    return d.getFullYear() === hoje.getFullYear() && d.getMonth() === hoje.getMonth() && d.getDate() === hoje.getDate();
+  }
+
+  function getDiaSemana(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR', { weekday: 'long', timeZone: 'America/Sao_Paulo' });
+  }
+
+  function diariaDoDia(iso) {
+    const dia = getDiaSemana(iso);
+    if (dia === 'sábado') return 35;
+    if (dia === 'domingo') return 50;
+    return 30;
+  }
+
+  function calcularDesconto(registro) {
+    if (!registro.dataPresenca || registro.status !== 'presente') return 0;
+    const d = new Date(registro.dataPresenca);
+    const h = d.getHours();
+    const m = d.getMinutes();
+    const turno = registro.turno;
+    const maxDesconto = diariaDoDia(registro.dataPresenca);
+    let desconto = 0;
+
+    if (turno === 'manha') {
+      if (h < 11 || (h === 11 && m === 0)) return 0;
+      if (h === 11 && m >= 1 && m <= 14) return Math.min(15, maxDesconto);
+      const minutosPassados = (h - 11) * 60 + m - 15;
+      const blocos = Math.ceil(minutosPassados / 15);
+      desconto = 15 + 2.5 * blocos;
+    } else if (turno === 'noite') {
+      if (h < 17 || (h === 17 && m < 15)) return 0;
+      const minutosPassados = (h - 17) * 60 + m - 15;
+      if (minutosPassados < 0) return 0;
+      const blocos = Math.floor(minutosPassados / 15) + 1;
+      desconto = 2.5 * blocos;
+    }
+    return Math.min(desconto, maxDesconto);
+  }
+
+  let soundEnabled = true;
+  function playBeep() {
+    if (!soundEnabled) return;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      osc.type = 'sine'; osc.frequency.value = 880;
+      osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
+    } catch(e) {}
+  }
+
+  let adminLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+  updateAdminUI();
+
+  function updateAdminUI() {
+    const adminControls = document.getElementById('adminControls');
+    const loginBtn = document.getElementById('loginBtn');
+    if (adminLoggedIn) {
+      adminControls.style.display = 'flex';
+      loginBtn.style.display = 'none';
+    } else {
+      adminControls.style.display = 'none';
+      loginBtn.style.display = 'inline-block';
+    }
+    atualizarInterface();
+  }
+
+  function getInscricoesDoDia() {
+    return db.filter(r => r && r.dataInscricao && isToday(r.dataInscricao) && r.status !== 'removido');
+  }
+
+  function vagasRestantes(turno) {
+    const inscritos = getInscricoesDoDia().filter(r => r.turno === turno);
+    return limites[turno] - inscritos.length;
+  }
+
+  function renderHoje() {
+    const inscritos = getInscricoesDoDia();
+    const container = document.getElementById('hojeList');
+    if (!inscritos.length) {
+      container.innerHTML = '<div class="empty">Nenhum inscrito hoje</div>';
+      atualizarVagas();
+      return;
+    }
+    container.innerHTML = inscritos.map(r => {
+      let icone = 'motorcycle', classeNome = 'inscrito', extraInfo = '';
+      if (r.status === 'presente') {
+        icone = 'check_circle'; classeNome = 'presente';
+        extraInfo = `<div class="datetime">${formatDisplay(r.dataPresenca)}</div>`;
+        if (adminLoggedIn) {
+          const desc = calcularDesconto(r);
+          if (desc > 0) extraInfo += `<div class="discount">Desconto: R$ ${desc.toFixed(2)}</div>`;
+        }
+      } else if (r.status === 'ausente') {
+        icone = 'cancel'; classeNome = 'ausente';
+        extraInfo = '<div class="datetime">Não compareceu</div>';
+      } else if (r.status === 'desistiu') {
+        icone = 'remove_circle'; classeNome = 'desistiu';
+        extraInfo = '<div class="datetime">Desistiu</div>';
+      } else {
+        extraInfo = '<div class="datetime">Aguardando</div>';
+      }
+
+      const adminBtns = adminLoggedIn ? `
+        <div class="admin-actions">
+          ${r.status === 'inscrito' ? `
+            <button class="chegou" data-id="${r.id}">✅ Chegou</button>
+            <button class="naoChegou" data-id="${r.id}">❌ Não chegou</button>
+            <button class="desistiu" data-id="${r.id}">🚫 Desistiu</button>
+          ` : ''}
+          ${r.status === 'presente' ? `<button class="editarHora" data-id="${r.id}">✏️ Hora</button>` : ''}
+          <button class="remover" data-id="${r.id}">🗑️ Remover</button>
+        </div>
+      ` : '';
+
+      return `
+        <div class="card">
+          <div class="info">
+            <span class="material-icons" style="color:${icone==='check_circle'?'var(--neon)':icone==='cancel'?'var(--danger)':icone==='remove_circle'?'var(--warning)':'var(--text)'}">${icone}</span>
+            <div>
+              <div class="name ${classeNome}">${r.nome}</div>
+              ${extraInfo}
+            </div>
+          </div>
+          ${adminBtns}
+        </div>
+      `;
+    }).join('');
+    atualizarVagas();
+  }
+
+  function atualizarVagas() {
+    const turno = document.getElementById('turnoSelect').value;
+    const vagas = vagasRestantes(turno);
+    document.getElementById('vagasRestantes').textContent = `Vagas: ${vagas} / ${limites[turno]}`;
+  }
+
+  function inscrever() {
+    const nome = document.getElementById('nomeInput').value.trim();
+    if (!nome) return alert('Digite o nome');
+    const turno = document.getElementById('turnoSelect').value;
+    const vagas = vagasRestantes(turno);
+    if (vagas <= 0) return alert('Limite de vagas atingido para este turno!');
+    const novo = {
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+      nome,
+      turno,
+      dataInscricao: nowBrasilia().toISOString(),
+      status: 'inscrito',
+      dataPresenca: null
+    };
+    adicionarRegistro(novo);
+    document.getElementById('nomeInput').value = '';
+    playBeep();
+  }
+
+  document.getElementById('inscreverBtn').addEventListener('click', inscrever);
+  document.getElementById('nomeInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') inscrever(); });
+  document.getElementById('turnoSelect').addEventListener('change', atualizarVagas);
+
+  document.addEventListener('click', (e) => {
+    if (!adminLoggedIn) return;
+    const id = e.target.dataset.id;
+    if (!id) return;
+    const reg = db.find(r => r.id === id);
+    if (!reg) return;
+    if (e.target.classList.contains('chegou')) {
+      reg.status = 'presente';
+      reg.dataPresenca = nowBrasilia().toISOString();
+      atualizarRegistro(id, reg);
+      playBeep();
+    } else if (e.target.classList.contains('naoChegou')) {
+      reg.status = 'ausente';
+      reg.dataPresenca = null;
+      atualizarRegistro(id, reg);
+    } else if (e.target.classList.contains('desistiu')) {
+      reg.status = 'desistiu';
+      reg.dataPresenca = null;
+      atualizarRegistro(id, reg);
+    } else if (e.target.classList.contains('remover')) {
+      if (!confirm('Remover permanentemente este registro?')) return;
+      reg.status = 'removido';
+      atualizarRegistro(id, reg);
+    } else if (e.target.classList.contains('editarHora')) {
+      const d = new Date(reg.dataPresenca || reg.dataInscricao);
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      const input = prompt('Novo horário (HH:MM):', `${hh}:${mm}`);
+      if (!input) return;
+      const [h, m] = input.split(':').map(Number);
+      if (isNaN(h) || isNaN(m) || h<0||h>23||m<0||m>59) return alert('Horário inválido');
+      d.setHours(h, m, 0, 0);
+      reg.dataPresenca = d.toISOString();
+      atualizarRegistro(id, reg);
+    }
+  });
+
+  function renderDiscounts() {
+    const container = document.getElementById('discountsList');
+    const hoje = db.filter(r => r && r.dataInscricao && isToday(r.dataInscricao) && r.status === 'presente');
+    if (!hoje.length) {
+      container.innerHTML = '<div class="empty">Nenhum desconto hoje</div>';
+      return;
+    }
+    let html = `<table class="discount-table"><tr><th>Nome</th><th>Turno</th><th>Chegada</th><th>Desconto</th></tr>`;
+    hoje.forEach(r => {
+      const desc = calcularDesconto(r);
+      const maxD = diariaDoDia(r.dataPresenca);
+      html += `<tr>
+        <td>${r.nome}</td>
+        <td>${r.turno}</td>
+        <td>${formatDisplay(r.dataPresenca)}</td>
+        <td>R$ ${desc.toFixed(2)} / R$ ${maxD.toFixed(2)}</td>
+      </tr>`;
+    });
+    html += '</table>';
+    container.innerHTML = html;
+  }
+
+  document.getElementById('discountsBtn').addEventListener('click', () => {
+    if (!adminLoggedIn) return;
+    document.getElementById('mainView').style.display = 'none';
+    document.getElementById('historyView').style.display = 'none';
+    document.getElementById('discountsView').style.display = 'block';
+    document.getElementById('backBtn').style.display = 'inline-block';
+    document.getElementById('historyBtn').style.display = 'inline-block';
+  });
+
+  const dateTabs = document.getElementById('dateTabs');
+  let selectedDay = null;
+
+  function renderHistorico(diaSelecionado = null) {
+    const diasUnicos = [...new Set(db.map(r => {
+      const d = new Date(r.dataInscricao || r.dataHora);
+      return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+    }))].sort((a,b) => {
+      const [da,ma,aa] = a.split('/');
+      const [db,mb,ab] = b.split('/');
+      return new Date(aa,ma-1,da) < new Date(ab,mb-1,db) ? 1 : -1;
+    });
+
+    dateTabs.innerHTML = diasUnicos.map(d => `<span class="date-tab" data-dia="${d}">${d}</span>`).join('');
+    if (!diaSelecionado && diasUnicos.length) diaSelecionado = diasUnicos[0];
+    selectedDay = diaSelecionado;
+
+    document.querySelectorAll('.date-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.dia === selectedDay);
+    });
+
+    const filtrados = selectedDay ? db.filter(r => {
+      const d = new Date(r.dataInscricao || r.dataHora);
+      return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) === selectedDay;
+    }) : db;
+
+    const list = document.getElementById('historyDayList');
+    list.innerHTML = filtrados.length ? filtrados.map(r => {
+      let statusIcon = r.status === 'presente' ? '✅' : r.status === 'ausente' ? '❌' : r.status === 'desistiu' ? '🚫' : '🗑️';
+      const desc = r.status === 'presente' ? calcularDesconto(r) : 0;
+      return `
+        <div class="card">
+          <div class="info">
+            <span class="material-icons">${r.status==='presente'?'check_circle':r.status==='ausente'?'cancel':'motorcycle'}</span>
+            <div>
+              <div class="name">${r.nome} ${statusIcon}</div>
+              <div class="datetime">Insc: ${formatDisplay(r.dataInscricao)}</div>
+              ${r.status==='presente'?`<div class="datetime">Chegada: ${formatDisplay(r.dataPresenca)}</div>`:''}
+              ${desc>0?`<div class="discount">Desconto: R$ ${desc.toFixed(2)}</div>`:''}
+            </div>
+          </div>
+          ${adminLoggedIn ? `<button class="editarHora" data-id="${r.id}" style="font-size:13px;">✏️ Editar</button>` : ''}
+        </div>`;
+    }).join('') : '<div class="empty">Nenhum registro</div>';
+  }
+
+  dateTabs.addEventListener('click', (e) => {
+    if (e.target.classList.contains('date-tab')) renderHistorico(e.target.dataset.dia);
+  });
+
+  document.getElementById('historyBtn').addEventListener('click', () => {
+    if (!adminLoggedIn) return;
+    document.getElementById('mainView').style.display = 'none';
+    document.getElementById('discountsView').style.display = 'none';
+    document.getElementById('historyView').style.display = 'block';
+    document.getElementById('backBtn').style.display = 'inline-block';
+    document.getElementById('historyBtn').style.display = 'none';
+    renderHistorico();
+  });
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    document.getElementById('mainView').style.display = 'block';
+    document.getElementById('discountsView').style.display = 'none';
+    document.getElementById('historyView').style.display = 'none';
+    document.getElementById('backBtn').style.display = 'none';
+    document.getElementById('historyBtn').style.display = 'inline-block';
+  });
+
+  function getFiltradosDia() {
+    if (!selectedDay) return [];
+    return db.filter(r => {
+      const d = new Date(r.dataInscricao || r.dataHora);
+      return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) === selectedDay;
+    });
+  }
+
+  function dadosExportacao(arr) {
+    return arr.map(r => ({
+      Nome: r.nome,
+      Turno: r.turno,
+      Status: r.status === 'presente' ? 'Chegou' : r.status === 'ausente' ? 'Não chegou' : r.status === 'desistiu' ? 'Desistiu' : r.status === 'removido' ? 'Removido' : 'Inscrito',
+      'Data Inscrição': formatDisplay(r.dataInscricao).split(' ')[0],
+      'Hora Chegada': r.dataPresenca ? formatDisplay(r.dataPresenca).split(' ')[1] : '-',
+      Desconto: r.status === 'presente' ? calcularDesconto(r).toFixed(2) : '0.00'
+    }));
+  }
+
+  function exportarExcel(arr) {
+    if (!arr.length) return alert('Sem dados');
+    const dados = dadosExportacao(arr);
+    const ws = XLSX.utils.json_to_sheet(dados);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Presença');
+    XLSX.writeFile(wb, 'presenca.xlsx');
+  }
+
+  function exportarPDF(arr) {
+    if (!arr.length) return alert('Sem dados');
+    const dados = dadosExportacao(arr);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.autoTable({
+      head: [['Nome', 'Turno', 'Status', 'Data Insc.', 'Chegada', 'Desconto']],
+      body: dados.map(d => [d.Nome, d.Turno, d.Status, d['Data Inscrição'], d['Hora Chegada'], d.Desconto]),
+    });
+    doc.save('presenca.pdf');
+  }
+
+  function exportarTXT(arr) {
+    if (!arr.length) return alert('Sem dados');
+    let txt = 'Lista de Presença\n\n';
+    arr.forEach((r, i) => {
+      const status = r.status === 'presente' ? '✅' : r.status === 'ausente' ? '❌' : r.status === 'desistiu' ? '🚫' : '⏳';
+      txt += `${i+1} ${r.nome} ${status}`;
+      if (r.status === 'presente') {
+        txt += ` ${formatDisplay(r.dataPresenca).split(' ')[1]}`;
+        const desc = calcularDesconto(r);
+        if (desc > 0) txt += ` (Desconto R$ ${desc.toFixed(2)})`;
+      }
+      txt += '\n';
+    });
+    const blob = new Blob([txt], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'lista.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  document.getElementById('exportExcelBtn').addEventListener('click', () => exportarExcel(db));
+  document.getElementById('exportPdfBtn').addEventListener('click', () => exportarPDF(db));
+  document.getElementById('exportTxtBtn').addEventListener('click', () => exportarTXT(db));
+  document.getElementById('exportExcelDia').addEventListener('click', () => exportarExcel(getFiltradosDia()));
+  document.getElementById('exportPdfDia').addEventListener('click', () => exportarPDF(getFiltradosDia()));
+  document.getElementById('exportTxtDia').addEventListener('click', () => exportarTXT(getFiltradosDia()));
+
+  function updateAutocomplete() {
+    const nomes = [...new Set(db.map(r => r.nome))];
+    document.getElementById('nomeList').innerHTML = nomes.map(n => `<option value="${n}">`).join('');
+  }
+
+  const loginModal = document.getElementById('loginModal');
+  document.getElementById('loginBtn').addEventListener('click', () => loginModal.style.display = 'flex');
+  document.getElementById('closeModal').addEventListener('click', () => loginModal.style.display = 'none');
+  document.getElementById('doLogin').addEventListener('click', fazerLogin);
+  document.getElementById('loginPassword').addEventListener('keypress', (e) => { if (e.key === 'Enter') fazerLogin(); });
+  document.getElementById('loginUsername').addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('loginPassword').focus(); });
+
+  function fazerLogin() {
+    const user = document.getElementById('loginUsername').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    if (user === 'admin' && pass === 'regalo2026') {
+      adminLoggedIn = true;
+      sessionStorage.setItem('adminLoggedIn', 'true');
+      updateAdminUI();
+      loginModal.style.display = 'none';
+      document.getElementById('loginUsername').value = '';
+      document.getElementById('loginPassword').value = '';
+    } else alert('Credenciais inválidas');
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    adminLoggedIn = false;
+    sessionStorage.removeItem('adminLoggedIn');
+    updateAdminUI();
+    document.getElementById('mainView').style.display = 'block';
+    document.getElementById('discountsView').style.display = 'none';
+    document.getElementById('historyView').style.display = 'none';
+  });
+
+  const configModal = document.getElementById('configModal');
+  document.getElementById('configBtn').addEventListener('click', () => {
+    document.getElementById('limiteManha').value = limites.manha;
+    document.getElementById('limiteNoite').value = limites.noite;
+    configModal.style.display = 'flex';
+  });
+  document.getElementById('closeConfigModal').addEventListener('click', () => configModal.style.display = 'none');
+  document.getElementById('salvarConfig').addEventListener('click', () => {
+    const manha = parseInt(document.getElementById('limiteManha').value) || 0;
+    const noite = parseInt(document.getElementById('limiteNoite').value) || 0;
+    set(configRef, { manha, noite });
+    configModal.style.display = 'none';
+    alert('Limites atualizados!');
+  });
+
+  const body = document.body;
+  const themeIcon = document.getElementById('themeIcon');
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    body.classList.toggle('light');
+    themeIcon.textContent = body.classList.contains('light') ? 'light_mode' : 'dark_mode';
+    localStorage.setItem('tema', body.classList.contains('light') ? 'light' : 'dark');
+  });
+  if (localStorage.getItem('tema') === 'light') { body.classList.add('light'); themeIcon.textContent = 'light_mode'; }
+
+  document.getElementById('soundToggle').addEventListener('click', function() {
+    soundEnabled = !soundEnabled;
+    this.querySelector('.material-icons').textContent = soundEnabled ? 'volume_up' : 'volume_off';
+  });
+
+  const msgs = ["Iniciando protocolo de segurança...", "Descriptografando módulo...", "Bypass de firewall ativado...", "Conectando ao servidor...", "Carregando banco de dados..."];
+  let idx = 0;
+  const splashMsg = document.getElementById('splashMsg');
+  const interval = setInterval(() => { idx = (idx+1)%msgs.length; splashMsg.textContent = msgs[idx]; }, 800);
+  setTimeout(() => {
+    clearInterval(interval);
+    document.getElementById('splash').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    updateAutocomplete();
+    atualizarInterface();
+    document.getElementById('turnoSelect').dispatchEvent(new Event('change'));
+  }, 4000);
+</script>
+</body>
+</html>
