@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -86,6 +86,12 @@
     .discount-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     .discount-table th, .discount-table td { padding: 8px; border: 1px solid var(--border); text-align: left; }
     .discount-table th { background: var(--glass); }
+    .search-bar { margin-bottom: 16px; position: relative; }
+    .search-bar input { width: 100%; padding: 12px 16px; padding-left: 40px; background: var(--glass); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; outline: none; }
+    .search-bar .material-icons { position: absolute; left: 12px; top: 14px; color: var(--text2); }
+    .sort-select { margin-bottom: 16px; padding: 10px; background: var(--glass); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 14px; }
+    .checkbox-col { width: 30px; }
+    .checkbox-col input { transform: scale(1.2); cursor: pointer; }
   </style>
 </head>
 <body>
@@ -153,8 +159,26 @@
       <datalist id="nomeList"></datalist>
       <button class="btn" id="inscreverBtn"><span class="material-icons">how_to_reg</span> Inscrever</button>
     </div>
+
+    <!-- NOVA LINHA: Pesquisa e Ordenação -->
+    <div class="search-bar">
+      <span class="material-icons">search</span>
+      <input type="text" id="searchInput" placeholder="Pesquisar motoboy...">
+    </div>
+    <select id="sortSelect" class="sort-select">
+      <option value="inscricao">Ordem de inscrição</option>
+      <option value="nomeAZ">Nome A-Z</option>
+      <option value="nomeZA">Nome Z-A</option>
+      <option value="chegadaRecente">Chegada mais recente</option>
+      <option value="chegadaAntiga">Chegada mais antiga</option>
+    </select>
+
     <div class="list-title">Inscritos de hoje</div>
     <div id="hojeList"></div>
+    <!-- Botão excluir selecionados (admin) -->
+    <div id="bulkActions" style="display:none; margin-top:10px;">
+      <button class="btn danger" id="excluirSelecionados"><span class="material-icons">delete</span> Excluir selecionados</button>
+    </div>
   </div>
 
   <!-- TELA DESCONTOS (admin) -->
@@ -228,6 +252,9 @@
     updateAutocomplete();
   });
 
+  // Estado da seleção (set de ids)
+  const selectedIds = new Set();
+
   function atualizarInterface() {
     renderHoje();
     if (adminLoggedIn) renderDiscounts();
@@ -250,6 +277,22 @@
         }
       }
     }, { onlyOnce: true });
+  }
+
+  function excluirMultiplos(ids) {
+    ids.forEach(id => {
+      onValue(registrosRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          for (const key in data) {
+            if (data[key].id === id) {
+              set(ref(database, `registros/${key}`), null);
+              break;
+            }
+          }
+        }
+      }, { onlyOnce: true });
+    });
   }
 
   function nowBrasilia() {
@@ -328,9 +371,12 @@
     if (adminLoggedIn) {
       adminControls.style.display = 'flex';
       loginBtn.style.display = 'none';
+      document.getElementById('bulkActions').style.display = 'block';
     } else {
       adminControls.style.display = 'none';
       loginBtn.style.display = 'inline-block';
+      document.getElementById('bulkActions').style.display = 'none';
+      selectedIds.clear();
     }
     atualizarInterface();
   }
@@ -344,8 +390,49 @@
     return limites[turno] - inscritos.length;
   }
 
-  function renderHoje() {
+  // Filtro e ordenação
+  function getFilteredAndSorted() {
     const inscritos = getInscricoesDoDia();
+    const termo = document.getElementById('searchInput')?.value?.trim().toLowerCase() || '';
+    const ordem = document.getElementById('sortSelect')?.value || 'inscricao';
+
+    let filtrados = inscritos;
+    if (termo) {
+      filtrados = inscritos.filter(r => r.nome.toLowerCase().includes(termo));
+    }
+
+    // Ordenação
+    switch (ordem) {
+      case 'nomeAZ':
+        filtrados.sort((a, b) => a.nome.localeCompare(b.nome));
+        break;
+      case 'nomeZA':
+        filtrados.sort((a, b) => b.nome.localeCompare(a.nome));
+        break;
+      case 'chegadaRecente':
+        filtrados.sort((a, b) => {
+          if (!a.dataPresenca && !b.dataPresenca) return 0;
+          if (!a.dataPresenca) return 1;
+          if (!b.dataPresenca) return -1;
+          return new Date(b.dataPresenca) - new Date(a.dataPresenca);
+        });
+        break;
+      case 'chegadaAntiga':
+        filtrados.sort((a, b) => {
+          if (!a.dataPresenca && !b.dataPresenca) return 0;
+          if (!a.dataPresenca) return 1;
+          if (!b.dataPresenca) return -1;
+          return new Date(a.dataPresenca) - new Date(b.dataPresenca);
+        });
+        break;
+      default: // inscricao
+        filtrados.sort((a, b) => new Date(b.dataInscricao) - new Date(a.dataInscricao));
+    }
+    return filtrados;
+  }
+
+  function renderHoje() {
+    const inscritos = getFilteredAndSorted();
     const container = document.getElementById('hojeList');
     if (!inscritos.length) {
       container.innerHTML = '<div class="empty">Nenhum inscrito hoje</div>';
@@ -371,6 +458,8 @@
         extraInfo = '<div class="datetime">Aguardando</div>';
       }
 
+      const isChecked = selectedIds.has(r.id) ? 'checked' : '';
+
       const adminBtns = adminLoggedIn ? `
         <div class="admin-actions">
           ${r.status === 'inscrito' ? `
@@ -379,12 +468,15 @@
             <button class="desistiu" data-id="${r.id}">🚫 Desistiu</button>
           ` : ''}
           ${r.status === 'presente' ? `<button class="editarHora" data-id="${r.id}">✏️ Hora</button>` : ''}
-          <button class="remover" data-id="${r.id}">🗑️ Remover</button>
+          <button class="remover" data-id="${r.id}">🗑️</button>
         </div>
       ` : '';
 
+      const checkboxHtml = adminLoggedIn ? `<td class="checkbox-col"><input type="checkbox" class="selectCheckbox" data-id="${r.id}" ${isChecked}></td>` : '';
+
       return `
         <div class="card">
+          ${adminLoggedIn ? `<div class="checkbox-col"><input type="checkbox" class="selectCheckbox" data-id="${r.id}" ${isChecked}></div>` : ''}
           <div class="info">
             <span class="material-icons" style="color:${icone==='check_circle'?'var(--neon)':icone==='cancel'?'var(--danger)':icone==='remove_circle'?'var(--warning)':'var(--text)'}">${icone}</span>
             <div>
@@ -398,6 +490,18 @@
     }).join('');
     atualizarVagas();
   }
+
+  // Delegação de eventos para checkboxes
+  document.addEventListener('change', (e) => {
+    if (e.target.classList.contains('selectCheckbox')) {
+      const id = e.target.dataset.id;
+      if (e.target.checked) {
+        selectedIds.add(id);
+      } else {
+        selectedIds.delete(id);
+      }
+    }
+  });
 
   function atualizarVagas() {
     const turno = document.getElementById('turnoSelect').value;
@@ -427,6 +531,18 @@
   document.getElementById('inscreverBtn').addEventListener('click', inscrever);
   document.getElementById('nomeInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') inscrever(); });
   document.getElementById('turnoSelect').addEventListener('change', atualizarVagas);
+
+  // Pesquisa e ordenação disparam re-render
+  document.getElementById('searchInput').addEventListener('input', renderHoje);
+  document.getElementById('sortSelect').addEventListener('change', renderHoje);
+
+  // Excluir selecionados
+  document.getElementById('excluirSelecionados').addEventListener('click', () => {
+    if (selectedIds.size === 0) return alert('Nenhum registro selecionado.');
+    if (!confirm(`Excluir ${selectedIds.size} registro(s) selecionado(s)?`)) return;
+    excluirMultiplos([...selectedIds]);
+    selectedIds.clear();
+  });
 
   document.addEventListener('click', (e) => {
     if (!adminLoggedIn) return;
@@ -664,6 +780,8 @@
     document.getElementById('mainView').style.display = 'block';
     document.getElementById('discountsView').style.display = 'none';
     document.getElementById('historyView').style.display = 'none';
+    selectedIds.clear();
+    renderHoje();
   });
 
   const configModal = document.getElementById('configModal');
