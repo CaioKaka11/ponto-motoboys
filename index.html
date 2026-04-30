@@ -24,6 +24,7 @@
       --teal: #00d4ff;
       --danger: #ff4444;
       --warning: #ffb300;
+      --active-filter: #ffffff;
     }
     body.light {
       --bg: #f0f2f5;
@@ -49,7 +50,6 @@
     .presence-indicator { display: flex; align-items: center; gap: 6px; margin-left: 12px; background: var(--glass); padding: 4px 12px; border-radius: 20px; font-size: 13px; }
     .presence-dot { width: 10px; height: 10px; border-radius: 50%; background: #0f0; box-shadow: 0 0 8px #0f0; }
     .container { padding: 20px; max-width: 700px; margin: 0 auto; }
-    /* Cards de resumo */
     .summary-cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -63,6 +63,17 @@
       padding: 12px;
       text-align: center;
       backdrop-filter: blur(20px);
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .summary-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .summary-card.active-filter {
+      border-color: var(--active-filter);
+      box-shadow: 0 0 12px rgba(255,255,255,0.2);
     }
     .summary-card .number {
       font-size: 28px;
@@ -190,7 +201,7 @@
       <button class="btn" id="inscreverBtn"><span class="material-icons">how_to_reg</span> Inscrever</button>
     </div>
 
-    <!-- RESUMO ESTATÍSTICO (apenas admin) -->
+    <!-- RESUMO ESTATÍSTICO (clique para filtrar) -->
     <div id="summaryContainer" class="summary-cards" style="display:none;"></div>
 
     <!-- Pesquisa e Ordenação -->
@@ -288,6 +299,7 @@
   });
 
   const selectedIds = new Set();
+  let filtroStatus = null; // 'presente', 'inscrito', 'ausente', 'desistiu' ou null (todos)
 
   function atualizarInterface() {
     renderHoje();
@@ -416,6 +428,7 @@
       summaryContainer.style.display = 'none';
       bulkActions.style.display = 'none';
       selectedIds.clear();
+      filtroStatus = null;
     }
     atualizarInterface();
   }
@@ -429,39 +442,58 @@
     return limites[turno] - inscritos.length;
   }
 
-  // Novo: resumo estatístico
+  // Renderiza os cards de resumo e configura os cliques
   function renderSummary() {
     if (!adminLoggedIn) return;
     const inscritos = getInscricoesDoDia();
-    const presentes = inscritos.filter(r => r.status === 'presente').length;
-    const aguardando = inscritos.filter(r => r.status === 'inscrito').length;
-    const ausentes = inscritos.filter(r => r.status === 'ausente').length;
-    const desistentes = inscritos.filter(r => r.status === 'desistiu').length;
-    const total = inscritos.length;
+    const stats = {
+      total: inscritos.length,
+      presente: inscritos.filter(r => r.status === 'presente').length,
+      aguardando: inscritos.filter(r => r.status === 'inscrito').length,
+      ausente: inscritos.filter(r => r.status === 'ausente').length,
+      desistiu: inscritos.filter(r => r.status === 'desistiu').length
+    };
 
-    const html = `
-      <div class="summary-card total">
-        <div class="number">${total}</div>
+    const container = document.getElementById('summaryContainer');
+    container.innerHTML = `
+      <div class="summary-card total ${filtroStatus === null ? 'active-filter' : ''}" data-filtro="todos">
+        <div class="number">${stats.total}</div>
         <div class="label">Total Inscritos</div>
       </div>
-      <div class="summary-card presente">
-        <div class="number">${presentes}</div>
+      <div class="summary-card presente ${filtroStatus === 'presente' ? 'active-filter' : ''}" data-filtro="presente">
+        <div class="number">${stats.presente}</div>
         <div class="label">✅ Chegaram</div>
       </div>
-      <div class="summary-card aguardando">
-        <div class="number">${aguardando}</div>
+      <div class="summary-card aguardando ${filtroStatus === 'inscrito' ? 'active-filter' : ''}" data-filtro="inscrito">
+        <div class="number">${stats.aguardando}</div>
         <div class="label">⏳ Aguardando</div>
       </div>
-      <div class="summary-card ausente">
-        <div class="number">${ausentes}</div>
+      <div class="summary-card ausente ${filtroStatus === 'ausente' ? 'active-filter' : ''}" data-filtro="ausente">
+        <div class="number">${stats.ausente}</div>
         <div class="label">❌ Não chegaram</div>
       </div>
-      <div class="summary-card desistiu">
-        <div class="number">${desistentes}</div>
+      <div class="summary-card desistiu ${filtroStatus === 'desistiu' ? 'active-filter' : ''}" data-filtro="desistiu">
+        <div class="number">${stats.desistiu}</div>
         <div class="label">🚫 Desistiram</div>
       </div>
     `;
-    document.getElementById('summaryContainer').innerHTML = html;
+
+    // Adiciona evento de clique nos cards
+    document.querySelectorAll('.summary-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const novoFiltro = card.dataset.filtro;
+        if (novoFiltro === 'todos') {
+          filtroStatus = null;
+        } else if (filtroStatus === novoFiltro) {
+          // Se já está ativo, desativa (volta para todos)
+          filtroStatus = null;
+        } else {
+          filtroStatus = novoFiltro;
+        }
+        renderHoje();
+        renderSummary(); // re-render para atualizar o destaque
+      });
+    });
   }
 
   function getFilteredAndSorted() {
@@ -469,12 +501,17 @@
     const termo = document.getElementById('searchInput').value.trim().toLowerCase();
     const ordem = document.getElementById('sortSelect').value;
 
+    // Aplica filtro de status (se houver)
     let filtrados = inscritos;
+    if (filtroStatus) {
+      filtrados = inscritos.filter(r => r.status === filtroStatus);
+    }
+    // Aplica pesquisa
     if (termo) {
-      filtrados = inscritos.filter(r => r.nome.toLowerCase().includes(termo));
+      filtrados = filtrados.filter(r => r.nome.toLowerCase().includes(termo));
     }
 
-    // Ordenação padrão: "naoChegouPrimeiro" (selected)
+    // Ordenação
     switch (ordem) {
       case 'nomeAZ':
         filtrados.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -616,7 +653,7 @@
   document.getElementById('nomeInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') inscrever(); });
   document.getElementById('turnoSelect').addEventListener('change', atualizarVagas);
 
-  document.getElementById('searchInput').addEventListener('input', () => { renderHoje(); renderSummary(); });
+  document.getElementById('searchInput').addEventListener('input', renderHoje);
   document.getElementById('sortSelect').addEventListener('change', renderHoje);
 
   document.getElementById('excluirSelecionados').addEventListener('click', () => {
@@ -867,6 +904,7 @@
     document.getElementById('discountsView').style.display = 'none';
     document.getElementById('historyView').style.display = 'none';
     selectedIds.clear();
+    filtroStatus = null;
     renderHoje();
   });
 
