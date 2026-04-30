@@ -160,7 +160,7 @@
       <button class="btn" id="inscreverBtn"><span class="material-icons">how_to_reg</span> Inscrever</button>
     </div>
 
-    <!-- NOVA LINHA: Pesquisa e Ordenação -->
+    <!-- Pesquisa e Ordenação -->
     <div class="search-bar">
       <span class="material-icons">search</span>
       <input type="text" id="searchInput" placeholder="Pesquisar motoboy...">
@@ -169,6 +169,8 @@
       <option value="inscricao">Ordem de inscrição</option>
       <option value="nomeAZ">Nome A-Z</option>
       <option value="nomeZA">Nome Z-A</option>
+      <option value="chegouPrimeiro">Chegaram primeiro</option>
+      <option value="naoChegouPrimeiro">Quem não chegou primeiro</option>
       <option value="chegadaRecente">Chegada mais recente</option>
       <option value="chegadaAntiga">Chegada mais antiga</option>
     </select>
@@ -252,7 +254,6 @@
     updateAutocomplete();
   });
 
-  // Estado da seleção (set de ids)
   const selectedIds = new Set();
 
   function atualizarInterface() {
@@ -390,24 +391,36 @@
     return limites[turno] - inscritos.length;
   }
 
-  // Filtro e ordenação
   function getFilteredAndSorted() {
     const inscritos = getInscricoesDoDia();
-    const termo = document.getElementById('searchInput')?.value?.trim().toLowerCase() || '';
-    const ordem = document.getElementById('sortSelect')?.value || 'inscricao';
+    const termo = document.getElementById('searchInput').value.trim().toLowerCase();
+    const ordem = document.getElementById('sortSelect').value;
 
     let filtrados = inscritos;
     if (termo) {
       filtrados = inscritos.filter(r => r.nome.toLowerCase().includes(termo));
     }
 
-    // Ordenação
     switch (ordem) {
       case 'nomeAZ':
         filtrados.sort((a, b) => a.nome.localeCompare(b.nome));
         break;
       case 'nomeZA':
         filtrados.sort((a, b) => b.nome.localeCompare(a.nome));
+        break;
+      case 'chegouPrimeiro':
+        filtrados.sort((a, b) => {
+          if (a.status === 'presente' && b.status !== 'presente') return -1;
+          if (a.status !== 'presente' && b.status === 'presente') return 1;
+          return 0;
+        });
+        break;
+      case 'naoChegouPrimeiro':
+        filtrados.sort((a, b) => {
+          if (a.status !== 'presente' && b.status === 'presente') return -1;
+          if (a.status === 'presente' && b.status !== 'presente') return 1;
+          return 0;
+        });
         break;
       case 'chegadaRecente':
         filtrados.sort((a, b) => {
@@ -472,8 +485,6 @@
         </div>
       ` : '';
 
-      const checkboxHtml = adminLoggedIn ? `<td class="checkbox-col"><input type="checkbox" class="selectCheckbox" data-id="${r.id}" ${isChecked}></td>` : '';
-
       return `
         <div class="card">
           ${adminLoggedIn ? `<div class="checkbox-col"><input type="checkbox" class="selectCheckbox" data-id="${r.id}" ${isChecked}></div>` : ''}
@@ -491,7 +502,6 @@
     atualizarVagas();
   }
 
-  // Delegação de eventos para checkboxes
   document.addEventListener('change', (e) => {
     if (e.target.classList.contains('selectCheckbox')) {
       const id = e.target.dataset.id;
@@ -532,11 +542,9 @@
   document.getElementById('nomeInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') inscrever(); });
   document.getElementById('turnoSelect').addEventListener('change', atualizarVagas);
 
-  // Pesquisa e ordenação disparam re-render
   document.getElementById('searchInput').addEventListener('input', renderHoje);
   document.getElementById('sortSelect').addEventListener('change', renderHoje);
 
-  // Excluir selecionados
   document.getElementById('excluirSelecionados').addEventListener('click', () => {
     if (selectedIds.size === 0) return alert('Nenhum registro selecionado.');
     if (!confirm(`Excluir ${selectedIds.size} registro(s) selecionado(s)?`)) return;
@@ -680,6 +688,7 @@
     document.getElementById('historyBtn').style.display = 'inline-block';
   });
 
+  // Funções de exportação
   function getFiltradosDia() {
     if (!selectedDay) return [];
     return db.filter(r => {
@@ -741,9 +750,16 @@
     URL.revokeObjectURL(a.href);
   }
 
-  document.getElementById('exportExcelBtn').addEventListener('click', () => exportarExcel(db));
-  document.getElementById('exportPdfBtn').addEventListener('click', () => exportarPDF(db));
-  document.getElementById('exportTxtBtn').addEventListener('click', () => exportarTXT(db));
+  // Exportações da tela principal agora usam APENAS registros do dia atual
+  function getDiaAtual() {
+    return getInscricoesDoDia(); // filtrado por hoje e não removidos
+  }
+
+  document.getElementById('exportExcelBtn').addEventListener('click', () => exportarExcel(getDiaAtual()));
+  document.getElementById('exportPdfBtn').addEventListener('click', () => exportarPDF(getDiaAtual()));
+  document.getElementById('exportTxtBtn').addEventListener('click', () => exportarTXT(getDiaAtual()));
+
+  // Exportações do histórico continuam usando o dia selecionado
   document.getElementById('exportExcelDia').addEventListener('click', () => exportarExcel(getFiltradosDia()));
   document.getElementById('exportPdfDia').addEventListener('click', () => exportarPDF(getFiltradosDia()));
   document.getElementById('exportTxtDia').addEventListener('click', () => exportarTXT(getFiltradosDia()));
