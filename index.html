@@ -49,6 +49,36 @@
     .presence-indicator { display: flex; align-items: center; gap: 6px; margin-left: 12px; background: var(--glass); padding: 4px 12px; border-radius: 20px; font-size: 13px; }
     .presence-dot { width: 10px; height: 10px; border-radius: 50%; background: #0f0; box-shadow: 0 0 8px #0f0; }
     .container { padding: 20px; max-width: 700px; margin: 0 auto; }
+    /* Cards de resumo */
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .summary-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      backdrop-filter: blur(20px);
+    }
+    .summary-card .number {
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .summary-card .label {
+      font-size: 12px;
+      color: var(--text2);
+      margin-top: 4px;
+    }
+    .summary-card.total { border-left: 4px solid var(--teal); }
+    .summary-card.presente { border-left: 4px solid var(--neon); }
+    .summary-card.aguardando { border-left: 4px solid var(--warning); }
+    .summary-card.ausente { border-left: 4px solid var(--danger); }
+    .summary-card.desistiu { border-left: 4px solid #888; }
+
     .shift-info { background: var(--card); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
     .shift-info .turno { font-weight: bold; font-size: 18px; }
     .shift-info .vagas { font-size: 14px; color: var(--teal); }
@@ -160,17 +190,20 @@
       <button class="btn" id="inscreverBtn"><span class="material-icons">how_to_reg</span> Inscrever</button>
     </div>
 
+    <!-- RESUMO ESTATÍSTICO (apenas admin) -->
+    <div id="summaryContainer" class="summary-cards" style="display:none;"></div>
+
     <!-- Pesquisa e Ordenação -->
     <div class="search-bar">
       <span class="material-icons">search</span>
       <input type="text" id="searchInput" placeholder="Pesquisar motoboy...">
     </div>
     <select id="sortSelect" class="sort-select">
+      <option value="naoChegouPrimeiro" selected>Quem não chegou primeiro</option>
+      <option value="chegouPrimeiro">Chegaram primeiro</option>
       <option value="inscricao">Ordem de inscrição</option>
       <option value="nomeAZ">Nome A-Z</option>
       <option value="nomeZA">Nome Z-A</option>
-      <option value="chegouPrimeiro">Chegaram primeiro</option>
-      <option value="naoChegouPrimeiro">Quem não chegou primeiro</option>
       <option value="chegadaRecente">Chegada mais recente</option>
       <option value="chegadaAntiga">Chegada mais antiga</option>
     </select>
@@ -258,6 +291,7 @@
 
   function atualizarInterface() {
     renderHoje();
+    renderSummary();
     if (adminLoggedIn) renderDiscounts();
     if (document.getElementById('historyView').style.display === 'block') renderHistorico(selectedDay);
   }
@@ -369,14 +403,18 @@
   function updateAdminUI() {
     const adminControls = document.getElementById('adminControls');
     const loginBtn = document.getElementById('loginBtn');
+    const summaryContainer = document.getElementById('summaryContainer');
+    const bulkActions = document.getElementById('bulkActions');
     if (adminLoggedIn) {
       adminControls.style.display = 'flex';
       loginBtn.style.display = 'none';
-      document.getElementById('bulkActions').style.display = 'block';
+      summaryContainer.style.display = 'grid';
+      bulkActions.style.display = 'block';
     } else {
       adminControls.style.display = 'none';
       loginBtn.style.display = 'inline-block';
-      document.getElementById('bulkActions').style.display = 'none';
+      summaryContainer.style.display = 'none';
+      bulkActions.style.display = 'none';
       selectedIds.clear();
     }
     atualizarInterface();
@@ -391,6 +429,41 @@
     return limites[turno] - inscritos.length;
   }
 
+  // Novo: resumo estatístico
+  function renderSummary() {
+    if (!adminLoggedIn) return;
+    const inscritos = getInscricoesDoDia();
+    const presentes = inscritos.filter(r => r.status === 'presente').length;
+    const aguardando = inscritos.filter(r => r.status === 'inscrito').length;
+    const ausentes = inscritos.filter(r => r.status === 'ausente').length;
+    const desistentes = inscritos.filter(r => r.status === 'desistiu').length;
+    const total = inscritos.length;
+
+    const html = `
+      <div class="summary-card total">
+        <div class="number">${total}</div>
+        <div class="label">Total Inscritos</div>
+      </div>
+      <div class="summary-card presente">
+        <div class="number">${presentes}</div>
+        <div class="label">✅ Chegaram</div>
+      </div>
+      <div class="summary-card aguardando">
+        <div class="number">${aguardando}</div>
+        <div class="label">⏳ Aguardando</div>
+      </div>
+      <div class="summary-card ausente">
+        <div class="number">${ausentes}</div>
+        <div class="label">❌ Não chegaram</div>
+      </div>
+      <div class="summary-card desistiu">
+        <div class="number">${desistentes}</div>
+        <div class="label">🚫 Desistiram</div>
+      </div>
+    `;
+    document.getElementById('summaryContainer').innerHTML = html;
+  }
+
   function getFilteredAndSorted() {
     const inscritos = getInscricoesDoDia();
     const termo = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -401,6 +474,7 @@
       filtrados = inscritos.filter(r => r.nome.toLowerCase().includes(termo));
     }
 
+    // Ordenação padrão: "naoChegouPrimeiro" (selected)
     switch (ordem) {
       case 'nomeAZ':
         filtrados.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -542,7 +616,7 @@
   document.getElementById('nomeInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') inscrever(); });
   document.getElementById('turnoSelect').addEventListener('change', atualizarVagas);
 
-  document.getElementById('searchInput').addEventListener('input', renderHoje);
+  document.getElementById('searchInput').addEventListener('input', () => { renderHoje(); renderSummary(); });
   document.getElementById('sortSelect').addEventListener('change', renderHoje);
 
   document.getElementById('excluirSelecionados').addEventListener('click', () => {
@@ -688,7 +762,6 @@
     document.getElementById('historyBtn').style.display = 'inline-block';
   });
 
-  // Funções de exportação
   function getFiltradosDia() {
     if (!selectedDay) return [];
     return db.filter(r => {
@@ -750,16 +823,13 @@
     URL.revokeObjectURL(a.href);
   }
 
-  // Exportações da tela principal agora usam APENAS registros do dia atual
   function getDiaAtual() {
-    return getInscricoesDoDia(); // filtrado por hoje e não removidos
+    return getInscricoesDoDia();
   }
 
   document.getElementById('exportExcelBtn').addEventListener('click', () => exportarExcel(getDiaAtual()));
   document.getElementById('exportPdfBtn').addEventListener('click', () => exportarPDF(getDiaAtual()));
   document.getElementById('exportTxtBtn').addEventListener('click', () => exportarTXT(getDiaAtual()));
-
-  // Exportações do histórico continuam usando o dia selecionado
   document.getElementById('exportExcelDia').addEventListener('click', () => exportarExcel(getFiltradosDia()));
   document.getElementById('exportPdfDia').addEventListener('click', () => exportarPDF(getFiltradosDia()));
   document.getElementById('exportTxtDia').addEventListener('click', () => exportarTXT(getFiltradosDia()));
