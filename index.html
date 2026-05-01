@@ -24,7 +24,6 @@
       --teal: #00d4ff;
       --danger: #ff4444;
       --warning: #ffb300;
-      --active-filter: #ffffff;
     }
     body.light {
       --bg: #f0f2f5;
@@ -34,7 +33,7 @@
       --text: #111;
       --text2: #444;
     }
-    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; min-height: 100vh; backdrop-filter: blur(10px); transition: background 0.3s, color 0.3s; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; min-height: 100vh; transition: background 0.3s, color 0.3s; overflow-y: auto; }
     #splash { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; padding: 20px; }
     .splash-icon { font-size: 70px; color: var(--neon); margin-bottom: 20px; }
     .splash-msg { font-size: 16px; color: var(--neon); font-weight: 600; letter-spacing: 1.2px; min-height: 40px; }
@@ -42,7 +41,7 @@
     .progress-fill { height: 100%; width: 0%; background: var(--neon); animation: fillBar 4s linear forwards; }
     @keyframes fillBar { to { width: 100%; } }
     #app { display: none; }
-    .header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--card); border-bottom: 1px solid var(--border); backdrop-filter: blur(20px); flex-wrap: wrap; }
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--card); border-bottom: 1px solid var(--border); backdrop-filter: blur(20px); flex-wrap: wrap; position: sticky; top: 0; z-index: 10; }
     .header h1 { font-size: 20px; }
     .header-actions { display: flex; gap: 6px; align-items: center; }
     .header-actions button { background: transparent; border: none; color: var(--text); font-size: 24px; cursor: pointer; padding: 6px; border-radius: 50%; transition: 0.2s; }
@@ -52,65 +51,138 @@
     .container { padding: 20px; max-width: 700px; margin: 0 auto; }
     .summary-cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 10px;
-      margin-bottom: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+      gap: 8px;
+      margin-bottom: 16px;
     }
     .summary-card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px;
+      padding: 10px;
       text-align: center;
       backdrop-filter: blur(20px);
       cursor: pointer;
       transition: all 0.2s;
       user-select: none;
     }
-    .summary-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-    .summary-card.active-filter {
-      border-color: var(--active-filter);
-      box-shadow: 0 0 12px rgba(255,255,255,0.2);
-    }
-    .summary-card .number {
-      font-size: 28px;
-      font-weight: bold;
-    }
-    .summary-card .label {
-      font-size: 12px;
-      color: var(--text2);
-      margin-top: 4px;
-    }
+    .summary-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .summary-card.active-filter { border-color: var(--active-filter); box-shadow: 0 0 10px rgba(255,255,255,0.15); }
+    .summary-card .number { font-size: 24px; font-weight: bold; }
+    .summary-card .label { font-size: 11px; color: var(--text2); margin-top: 2px; }
     .summary-card.total { border-left: 4px solid var(--teal); }
     .summary-card.presente { border-left: 4px solid var(--neon); }
     .summary-card.aguardando { border-left: 4px solid var(--warning); }
     .summary-card.ausente { border-left: 4px solid var(--danger); }
     .summary-card.desistiu { border-left: 4px solid #888; }
 
-    .shift-info { background: var(--card); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-    .shift-info .turno { font-weight: bold; font-size: 18px; }
-    .shift-info .vagas { font-size: 14px; color: var(--teal); }
-    .input-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-    .input-row select, .input-row input { flex: 1; padding: 14px; background: var(--glass); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; outline: none; }
-    .btn { background: var(--neon); color: #000; border: none; padding: 14px 24px; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+    .shift-info { background: var(--card); padding: 10px 16px; border-radius: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .shift-info .turno { font-weight: bold; font-size: 17px; }
+    .shift-info .vagas { font-size: 13px; color: var(--teal); }
+
+    .input-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .input-row select, .input-row input { flex: 1; padding: 12px; background: var(--glass); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; outline: none; }
+    .btn { background: var(--neon); color: #000; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
     .btn:active { transform: scale(0.96); }
     .btn.danger { background: var(--danger); }
-    .list-title { font-weight: bold; margin-bottom: 10px; color: var(--teal); }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(20px); }
-    .card .info { display: flex; align-items: center; gap: 12px; }
-    .card .info i { font-size: 28px; }
-    .card .name { font-weight: bold; }
+
+    /* Barra de ferramentas (pesquisa + ordem) */
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .search-bar {
+      flex: 1;
+      position: relative;
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 10px 14px 10px 36px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+    }
+    .search-bar .material-icons {
+      position: absolute;
+      left: 10px;
+      top: 12px;
+      color: var(--text2);
+      font-size: 20px;
+    }
+    .order-btn {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+    .order-dropdown {
+      position: absolute;
+      right: 20px;
+      margin-top: 4px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      backdrop-filter: blur(20px);
+      z-index: 20;
+      overflow: hidden;
+      display: none;
+      min-width: 180px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    }
+    .order-dropdown.show { display: block; }
+    .order-dropdown div {
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    .order-dropdown div:hover { background: var(--glass); }
+    .order-dropdown div.active { color: var(--neon); }
+
+    .list-title { font-weight: bold; margin-bottom: 8px; color: var(--teal); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(20px);
+      transform: translateZ(0); /* aceleração de hardware */
+      will-change: transform;
+    }
+    .card .info { display: flex; align-items: center; gap: 10px; }
+    .card .info i { font-size: 26px; }
+    .card .name { font-weight: bold; font-size: 15px; }
     .card .name.presente { color: var(--neon); }
     .card .name.ausente { color: var(--danger); }
     .card .name.desistiu { color: var(--warning); }
-    .card .datetime { font-size: 13px; color: var(--text2); }
-    .card .discount { font-size: 13px; color: var(--warning); }
-    .admin-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-    .admin-actions button { background: transparent; border: 1px solid var(--teal); color: var(--teal); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    .card .datetime { font-size: 12px; color: var(--text2); }
+    .card .discount { font-size: 12px; color: var(--warning); }
+    .admin-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+    .admin-actions button {
+      background: transparent; border: 1px solid var(--teal); color: var(--teal);
+      padding: 4px 10px; border-radius: 8px; cursor: pointer; font-size: 12px;
+    }
     .admin-actions button.remover { border-color: var(--danger); color: var(--danger); }
+
+    .checkbox-col { width: 28px; }
+    .checkbox-col input { transform: scale(1.1); cursor: pointer; }
+
     .date-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
     .date-tab { background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 13px; cursor: pointer; transition: 0.2s; }
     .date-tab.active { background: var(--teal); color: #000; border-color: var(--teal); }
@@ -127,12 +199,6 @@
     .discount-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     .discount-table th, .discount-table td { padding: 8px; border: 1px solid var(--border); text-align: left; }
     .discount-table th { background: var(--glass); }
-    .search-bar { margin-bottom: 16px; position: relative; }
-    .search-bar input { width: 100%; padding: 12px 16px; padding-left: 40px; background: var(--glass); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; outline: none; }
-    .search-bar .material-icons { position: absolute; left: 12px; top: 14px; color: var(--text2); }
-    .sort-select { margin-bottom: 16px; padding: 10px; background: var(--glass); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 14px; }
-    .checkbox-col { width: 30px; }
-    .checkbox-col input { transform: scale(1.2); cursor: pointer; }
   </style>
 </head>
 <body>
@@ -188,7 +254,7 @@
   <!-- TELA PRINCIPAL -->
   <div id="mainView" class="container">
     <div class="shift-info">
-      <span class="turno" id="turnoLabel">Inscrição</span>
+      <span class="turno" id="turnoLabel">Turno: <span id="turnoNome">Manhã</span></span>
       <span class="vagas" id="vagasRestantes"></span>
     </div>
     <div class="input-row" id="inscricaoRow">
@@ -204,24 +270,30 @@
     <!-- RESUMO ESTATÍSTICO (clique para filtrar) -->
     <div id="summaryContainer" class="summary-cards" style="display:none;"></div>
 
-    <!-- Pesquisa e Ordenação -->
-    <div class="search-bar">
-      <span class="material-icons">search</span>
-      <input type="text" id="searchInput" placeholder="Pesquisar motoboy...">
+    <!-- BARRA DE FERRAMENTAS (pesquisa + ordenação) -->
+    <div class="toolbar">
+      <div class="search-bar">
+        <span class="material-icons">search</span>
+        <input type="text" id="searchInput" placeholder="Pesquisar...">
+      </div>
+      <div style="position: relative;">
+        <button class="order-btn" id="orderButton">
+          <span class="material-icons" style="font-size:18px;">sort</span> Ordenar
+        </button>
+        <div class="order-dropdown" id="orderDropdown">
+          <div data-value="naoChegouPrimeiro" class="active">Quem não chegou primeiro</div>
+          <div data-value="chegouPrimeiro">Chegaram primeiro</div>
+          <div data-value="inscricao">Ordem de inscrição</div>
+          <div data-value="nomeAZ">Nome A-Z</div>
+          <div data-value="nomeZA">Nome Z-A</div>
+          <div data-value="chegadaRecente">Chegada mais recente</div>
+          <div data-value="chegadaAntiga">Chegada mais antiga</div>
+        </div>
+      </div>
     </div>
-    <select id="sortSelect" class="sort-select">
-      <option value="naoChegouPrimeiro" selected>Quem não chegou primeiro</option>
-      <option value="chegouPrimeiro">Chegaram primeiro</option>
-      <option value="inscricao">Ordem de inscrição</option>
-      <option value="nomeAZ">Nome A-Z</option>
-      <option value="nomeZA">Nome Z-A</option>
-      <option value="chegadaRecente">Chegada mais recente</option>
-      <option value="chegadaAntiga">Chegada mais antiga</option>
-    </select>
 
     <div class="list-title">Inscritos de hoje</div>
     <div id="hojeList"></div>
-    <!-- Botão excluir selecionados (admin) -->
     <div id="bulkActions" style="display:none; margin-top:10px;">
       <button class="btn danger" id="excluirSelecionados"><span class="material-icons">delete</span> Excluir selecionados</button>
     </div>
@@ -288,18 +360,24 @@
   });
 
   let db = [];
+  // Debounce para evitar múltiplas renderizações rápidas
+  let renderTimeout;
   onValue(registrosRef, (snapshot) => {
     if (snapshot.exists()) {
       db = Object.values(snapshot.val());
     } else {
       db = [];
     }
-    atualizarInterface();
-    updateAutocomplete();
+    clearTimeout(renderTimeout);
+    renderTimeout = setTimeout(() => {
+      atualizarInterface();
+      updateAutocomplete();
+    }, 50);
   });
 
   const selectedIds = new Set();
-  let filtroStatus = null; // 'presente', 'inscrito', 'ausente', 'desistiu' ou null (todos)
+  let filtroStatus = null;
+  let ordemAtual = 'naoChegouPrimeiro';
 
   function atualizarInterface() {
     renderHoje();
@@ -359,6 +437,11 @@
     const hoje = nowBrasilia();
     const d = new Date(iso);
     return d.getFullYear() === hoje.getFullYear() && d.getMonth() === hoje.getMonth() && d.getDate() === hoje.getDate();
+  }
+
+  function getTurnoAtual() {
+    const h = nowBrasilia().getHours();
+    return (h >= 9 && h < 17) ? 'manha' : 'noite'; // a partir das 17h já é noite
   }
 
   function getDiaSemana(iso) {
@@ -433,13 +516,29 @@
     atualizarInterface();
   }
 
+  // Filtra os inscritos do dia e também pelo turno atual
   function getInscricoesDoDia() {
-    return db.filter(r => r && r.dataInscricao && isToday(r.dataInscricao) && r.status !== 'removido');
+    const turnoAtual = getTurnoAtual();
+    return db.filter(r => {
+      if (!r || !r.dataInscricao || !isToday(r.dataInscricao)) return false;
+      if (r.status === 'removido') return false;
+      // Só mostra se o turno do registro for igual ao turno atual
+      return r.turno === turnoAtual;
+    });
   }
 
-  function vagasRestantes(turno) {
+  function vagasRestantes() {
+    const turno = getTurnoAtual();
     const inscritos = getInscricoesDoDia().filter(r => r.turno === turno);
     return limites[turno] - inscritos.length;
+  }
+
+  function atualizarTurnoLabel() {
+    const turno = getTurnoAtual();
+    document.getElementById('turnoNome').textContent = turno === 'manha' ? 'Manhã' : 'Noite';
+    document.getElementById('turnoSelect').value = turno;
+    const vagas = vagasRestantes();
+    document.getElementById('vagasRestantes').textContent = `Vagas: ${vagas} / ${limites[turno]}`;
   }
 
   // Renderiza os cards de resumo e configura os cliques
@@ -478,20 +577,18 @@
       </div>
     `;
 
-    // Adiciona evento de clique nos cards
     document.querySelectorAll('.summary-card').forEach(card => {
       card.addEventListener('click', () => {
         const novoFiltro = card.dataset.filtro;
         if (novoFiltro === 'todos') {
           filtroStatus = null;
         } else if (filtroStatus === novoFiltro) {
-          // Se já está ativo, desativa (volta para todos)
           filtroStatus = null;
         } else {
           filtroStatus = novoFiltro;
         }
         renderHoje();
-        renderSummary(); // re-render para atualizar o destaque
+        renderSummary();
       });
     });
   }
@@ -499,20 +596,16 @@
   function getFilteredAndSorted() {
     const inscritos = getInscricoesDoDia();
     const termo = document.getElementById('searchInput').value.trim().toLowerCase();
-    const ordem = document.getElementById('sortSelect').value;
 
-    // Aplica filtro de status (se houver)
     let filtrados = inscritos;
     if (filtroStatus) {
-      filtrados = inscritos.filter(r => r.status === filtroStatus);
+      filtrados = filtrados.filter(r => r.status === filtroStatus);
     }
-    // Aplica pesquisa
     if (termo) {
       filtrados = filtrados.filter(r => r.nome.toLowerCase().includes(termo));
     }
 
-    // Ordenação
-    switch (ordem) {
+    switch (ordemAtual) {
       case 'nomeAZ':
         filtrados.sort((a, b) => a.nome.localeCompare(b.nome));
         break;
@@ -560,7 +653,6 @@
     const container = document.getElementById('hojeList');
     if (!inscritos.length) {
       container.innerHTML = '<div class="empty">Nenhum inscrito hoje</div>';
-      atualizarVagas();
       return;
     }
     container.innerHTML = inscritos.map(r => {
@@ -610,7 +702,6 @@
         </div>
       `;
     }).join('');
-    atualizarVagas();
   }
 
   document.addEventListener('change', (e) => {
@@ -624,16 +715,15 @@
     }
   });
 
-  function atualizarVagas() {
-    const turno = document.getElementById('turnoSelect').value;
-    const vagas = vagasRestantes(turno);
-    document.getElementById('vagasRestantes').textContent = `Vagas: ${vagas} / ${limites[turno]}`;
-  }
-
   function inscrever() {
     const nome = document.getElementById('nomeInput').value.trim();
     if (!nome) return alert('Digite o nome');
     const turno = document.getElementById('turnoSelect').value;
+    const turnoAtual = getTurnoAtual();
+    // Avisa se está tentando se inscrever em turno diferente do atual
+    if (turno !== turnoAtual) {
+      if (!confirm(`Você está se inscrevendo para o turno da ${turno}, mas o turno atual é ${turnoAtual}. Deseja continuar?`)) return;
+    }
     const vagas = vagasRestantes(turno);
     if (vagas <= 0) return alert('Limite de vagas atingido para este turno!');
     const novo = {
@@ -651,10 +741,29 @@
 
   document.getElementById('inscreverBtn').addEventListener('click', inscrever);
   document.getElementById('nomeInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') inscrever(); });
-  document.getElementById('turnoSelect').addEventListener('change', atualizarVagas);
+
+  // Controle do dropdown de ordenação
+  const orderBtn = document.getElementById('orderButton');
+  const orderDropdown = document.getElementById('orderDropdown');
+  orderBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    orderDropdown.classList.toggle('show');
+  });
+  document.addEventListener('click', () => orderDropdown.classList.remove('show'));
+  orderDropdown.querySelectorAll('div').forEach(div => {
+    div.addEventListener('click', (e) => {
+      const val = e.target.dataset.value;
+      ordemAtual = val;
+      // Atualiza classe ativo
+      orderDropdown.querySelectorAll('div').forEach(d => d.classList.remove('active'));
+      e.target.classList.add('active');
+      orderDropdown.classList.remove('show');
+      renderHoje();
+      renderSummary();
+    });
+  });
 
   document.getElementById('searchInput').addEventListener('input', renderHoje);
-  document.getElementById('sortSelect').addEventListener('change', renderHoje);
 
   document.getElementById('excluirSelecionados').addEventListener('click', () => {
     if (selectedIds.size === 0) return alert('Nenhum registro selecionado.');
@@ -702,7 +811,7 @@
 
   function renderDiscounts() {
     const container = document.getElementById('discountsList');
-    const hoje = db.filter(r => r && r.dataInscricao && isToday(r.dataInscricao) && r.status === 'presente');
+    const hoje = getInscricoesDoDia().filter(r => r.status === 'presente');
     if (!hoje.length) {
       container.innerHTML = '<div class="empty">Nenhum desconto hoje</div>';
       return;
@@ -797,8 +906,12 @@
     document.getElementById('historyView').style.display = 'none';
     document.getElementById('backBtn').style.display = 'none';
     document.getElementById('historyBtn').style.display = 'inline-block';
+    atualizarTurnoLabel();
+    renderHoje();
+    renderSummary();
   });
 
+  // Exportações
   function getFiltradosDia() {
     if (!selectedDay) return [];
     return db.filter(r => {
@@ -876,6 +989,7 @@
     document.getElementById('nomeList').innerHTML = nomes.map(n => `<option value="${n}">`).join('');
   }
 
+  // LOGIN
   const loginModal = document.getElementById('loginModal');
   document.getElementById('loginBtn').addEventListener('click', () => loginModal.style.display = 'flex');
   document.getElementById('closeModal').addEventListener('click', () => loginModal.style.display = 'none');
@@ -908,6 +1022,7 @@
     renderHoje();
   });
 
+  // CONFIGURAÇÃO
   const configModal = document.getElementById('configModal');
   document.getElementById('configBtn').addEventListener('click', () => {
     document.getElementById('limiteManha').value = limites.manha;
@@ -923,6 +1038,7 @@
     alert('Limites atualizados!');
   });
 
+  // TEMA
   const body = document.body;
   const themeIcon = document.getElementById('themeIcon');
   document.getElementById('themeToggle').addEventListener('click', () => {
@@ -937,6 +1053,19 @@
     this.querySelector('.material-icons').textContent = soundEnabled ? 'volume_up' : 'volume_off';
   });
 
+  // Atualiza turno automaticamente a cada minuto
+  function verificarTrocaTurno() {
+    const turnoAtual = getTurnoAtual();
+    const turnoLabel = document.getElementById('turnoNome');
+    if (turnoLabel.textContent !== (turnoAtual === 'manha' ? 'Manhã' : 'Noite')) {
+      atualizarTurnoLabel();
+      renderHoje();
+      renderSummary();
+    }
+  }
+  setInterval(verificarTrocaTurno, 60000);
+
+  // SPLASH
   const msgs = ["Iniciando protocolo de segurança...", "Descriptografando módulo...", "Bypass de firewall ativado...", "Conectando ao servidor...", "Carregando banco de dados..."];
   let idx = 0;
   const splashMsg = document.getElementById('splashMsg');
@@ -946,8 +1075,8 @@
     document.getElementById('splash').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     updateAutocomplete();
+    atualizarTurnoLabel();
     atualizarInterface();
-    document.getElementById('turnoSelect').dispatchEvent(new Event('change'));
   }, 4000);
 </script>
 </body>
