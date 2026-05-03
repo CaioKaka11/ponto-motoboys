@@ -12,191 +12,89 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --bg: #0b0b0f;
-      --card: rgba(25, 25, 30, 0.8);
-      --glass: rgba(255, 255, 255, 0.05);
-      --border: rgba(255, 255, 255, 0.1);
-      --text: #fff;
-      --text2: #ccc;
-      --neon: #00ff88;
-      --teal: #00d4ff;
-      --danger: #ff4444;
-      --warning: #ffb300;
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#0b0b0f;--card:rgba(25,25,30,0.8);--glass:rgba(255,255,255,0.05);
+      --border:rgba(255,255,255,0.1);--text:#fff;--text2:#ccc;
+      --neon:#00ff88;--teal:#00d4ff;--danger:#ff4444;--warning:#ffb300
     }
-    body.light {
-      --bg: #f0f2f5;
-      --card: rgba(255,255,255,0.8);
-      --glass: rgba(255,255,255,0.4);
-      --border: rgba(0,0,0,0.1);
-      --text: #111;
-      --text2: #444;
+    body.light{
+      --bg:#f0f2f5;--card:rgba(255,255,255,0.8);--glass:rgba(255,255,255,0.4);
+      --border:rgba(0,0,0,0.1);--text:#111;--text2:#444
     }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Segoe UI', Roboto, sans-serif;
-      min-height: 100vh;
-      transition: background 0.3s, color 0.3s;
-    }
-    @keyframes fadeInScale {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    #splash {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 100vh; text-align: center; padding: 20px;
-      animation: fadeInScale 0.5s ease;
-    }
-    .splash-icon { font-size: 70px; color: var(--neon); margin-bottom: 20px; }
-    .splash-msg { font-size: 16px; color: var(--neon); font-weight: 600; letter-spacing: 1.2px; min-height: 40px; }
-    .progress-bar { width: 200px; height: 4px; background: rgba(255,255,255,0.1); margin: 20px auto; border-radius: 2px; overflow: hidden; }
-    .progress-fill { height: 100%; width: 0%; background: var(--neon); animation: fillBar 4s linear forwards; }
-    @keyframes fillBar { to { width: 100%; } }
-
-    #app { display: none; }
-    .header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 16px; background: var(--card); border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 10;
-      animation: slideDown 0.4s ease;
-    }
-    .header h1 { font-size: 18px; }
-    .header-actions { display: flex; gap: 2px; align-items: center; flex-wrap: wrap; }
-    .header-actions button {
-      background: transparent; border: none; color: var(--text); font-size: 22px;
-      cursor: pointer; padding: 6px; border-radius: 50%; transition: all 0.3s;
-    }
-    .header-actions button:hover { background: var(--glass); transform: scale(1.15); }
-    .presence-indicator {
-      display: flex; align-items: center; gap: 4px; margin-left: 8px;
-      background: var(--glass); padding: 4px 10px; border-radius: 20px; font-size: 12px;
-      cursor: pointer;
-    }
-    .presence-dot { width: 8px; height: 8px; border-radius: 50%; background: #0f0; box-shadow: 0 0 6px #0f0; }
-
-    .container { padding: 16px; max-width: 700px; margin: 0 auto; animation: fadeInScale 0.4s ease; }
-
-    /* Abas de turno */
-    .tab-bar {
-      display: flex;
-      background: var(--card);
-      border-radius: 12px;
-      padding: 4px;
-      margin-bottom: 16px;
-    }
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 10px;
-      border-radius: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .tab.active {
-      background: var(--neon);
-      color: #000;
-      box-shadow: 0 2px 8px rgba(0,255,136,0.3);
-    }
-
-    .shift-info {
-      background: var(--card); padding: 10px 16px; border-radius: 12px; margin-bottom: 16px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .input-row { display: flex; gap: 10px; margin-bottom: 16px; }
-    .input-row input {
-      flex: 1; padding: 12px; background: var(--glass); border: 1px solid var(--border);
-      border-radius: 12px; color: var(--text); font-size: 16px;
-    }
-    .btn {
-      background: var(--neon); color: #000; border: none; padding: 12px 20px;
-      border-radius: 12px; font-weight: bold; font-size: 15px; cursor: pointer;
-      display: flex; align-items: center; gap: 8px; transition: 0.3s;
-    }
-    .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-    .btn.danger { background: var(--danger); }
-    .summary-cards {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
-      gap: 8px; margin-bottom: 16px;
-    }
-    .summary-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-      padding: 10px; text-align: center; cursor: pointer; transition: 0.3s;
-    }
-    .summary-card:hover { transform: translateY(-2px); }
-    .summary-card.active-filter { border-color: var(--neon); }
-    .summary-card .number { font-size: 22px; font-weight: bold; }
-    .summary-card .label { font-size: 11px; color: var(--text2); }
-
-    .toolbar { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
-    .search-bar { flex: 1; position: relative; }
-    .search-bar input {
-      width: 100%; padding: 10px 14px 10px 36px; background: var(--glass);
-      border: 1px solid var(--border); border-radius: 10px; color: var(--text);
-    }
-    .search-bar .material-icons { position: absolute; left: 10px; top: 12px; color: var(--text2); }
-
-    .order-btn {
-      background: var(--glass); border: 1px solid var(--border); border-radius: 10px;
-      color: var(--text); padding: 10px 14px; font-size: 14px; cursor: pointer;
-    }
-    .order-dropdown {
-      position: absolute; right: 0; top: 100%; background: var(--card); border: 1px solid var(--border);
-      border-radius: 12px; backdrop-filter: blur(20px); z-index: 20; display: none; min-width: 200px;
-    }
-    .order-dropdown.show { display: block; }
-    .order-dropdown div { padding: 10px 16px; cursor: pointer; }
-    .order-dropdown div:hover { background: var(--glass); }
-    .order-dropdown div.active { color: var(--neon); }
-
-    .list-title { font-weight: bold; margin-bottom: 8px; color: var(--teal); }
-    .card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-      padding: 12px; margin-bottom: 6px; display: flex; align-items: center;
-      justify-content: space-between; transition: 0.2s;
-    }
-    .card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-    .card .info { display: flex; align-items: center; gap: 10px; flex: 1; }
-    .card .name { font-weight: bold; }
-    .card .name.presente { color: var(--neon); }
-    .card .name.ausente { color: var(--danger); }
-    .card .name.desistiu { color: var(--warning); }
-    .card .datetime { font-size: 12px; color: var(--text2); }
-    .card .discount { font-size: 12px; color: var(--warning); }
-    .admin-actions button {
-      background: transparent; border: 1px solid var(--teal); color: var(--teal);
-      padding: 4px 10px; border-radius: 8px; font-size: 12px; margin-left: 4px;
-    }
-    .admin-actions button.remover { border-color: var(--danger); color: var(--danger); }
-
-    .modal {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000;
-      backdrop-filter: blur(5px);
-    }
-    .modal.active { display: flex; animation: fadeInScale 0.3s ease; }
-    .modal-content {
-      background: var(--card); padding: 24px; border-radius: 20px;
-      border: 1px solid var(--border); max-width: 400px; width: 90%;
-      max-height: 80vh; overflow-y: auto;
-    }
-    .close-modal { position: absolute; top: 10px; right: 20px; cursor: pointer; color: var(--text2); font-size: 24px; }
-    .config-row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; }
-    .config-row label { flex: 1; }
-    .config-row input { width: 80px; padding: 6px; border-radius: 8px; background: var(--glass); border: 1px solid var(--border); color: var(--text); }
-    .discount-table, .weekly-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    .discount-table th, .weekly-table th { background: var(--glass); }
-    .discount-table td, .weekly-table td { padding: 8px; border: 1px solid var(--border); }
-    .week-selector { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; }
-    .week-selector input { padding: 8px; background: var(--glass); border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
-    .device-list table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-    .device-list th, .device-list td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; font-size: 13px; }
+    body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Roboto,sans-serif;min-height:100vh;transition:background 0.3s,color 0.3s}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes pulse{0%,100%{box-shadow:0 0 5px var(--neon)}50%{box-shadow:0 0 15px var(--neon)}}
+    #splash{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;text-align:center;padding:20px;animation:fadeIn 0.5s ease}
+    .splash-icon{font-size:70px;color:var(--neon);margin-bottom:20px}
+    .splash-msg{font-size:16px;color:var(--neon);font-weight:600;letter-spacing:1.2px;min-height:40px}
+    .progress-bar{width:200px;height:4px;background:rgba(255,255,255,0.1);margin:20px auto;border-radius:2px;overflow:hidden}
+    .progress-fill{height:100%;width:0%;background:var(--neon);animation:fillBar 4s linear forwards}
+    @keyframes fillBar{to{width:100%}}
+    #app{display:none}
+    .header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);position:sticky;top:0;z-index:10}
+    .header h1{font-size:18px}
+    .header-actions{display:flex;gap:2px;align-items:center;flex-wrap:wrap}
+    .header-actions button{background:transparent;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:6px;border-radius:50%;transition:all 0.3s}
+    .header-actions button:hover{background:var(--glass);transform:scale(1.15)}
+    .presence-indicator{display:flex;align-items:center;gap:4px;margin-left:8px;background:var(--glass);padding:4px 10px;border-radius:20px;font-size:12px;cursor:pointer;animation:pulse 2s infinite}
+    .presence-dot{width:8px;height:8px;border-radius:50%;background:#0f0;box-shadow:0 0 8px #0f0}
+    .container{padding:16px;max-width:700px;margin:0 auto}
+    .tab-bar{display:flex;background:var(--card);border-radius:12px;padding:4px;margin-bottom:16px}
+    .tab{flex:1;text-align:center;padding:10px;border-radius:10px;font-weight:bold;cursor:pointer;transition:0.3s}
+    .tab.active{background:var(--neon);color:#000;box-shadow:0 2px 8px rgba(0,255,136,0.3)}
+    .shift-info{background:var(--card);padding:10px 16px;border-radius:12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+    .input-row{display:flex;gap:10px;margin-bottom:16px}
+    .input-row input{flex:1;padding:12px;background:var(--glass);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px}
+    .btn{background:var(--neon);color:#000;border:none;padding:12px 20px;border-radius:12px;font-weight:bold;font-size:15px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:0.3s}
+    .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+    .btn.danger{background:var(--danger)}
+    .summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(85px,1fr));gap:8px;margin-bottom:16px}
+    .summary-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;cursor:pointer;transition:0.3s}
+    .summary-card:hover{transform:translateY(-2px)}
+    .summary-card.active-filter{border-color:var(--neon);box-shadow:0 0 10px rgba(0,255,136,0.3)}
+    .summary-card .number{font-size:22px;font-weight:bold}
+    .summary-card .label{font-size:11px;color:var(--text2)}
+    .toolbar{display:flex;gap:8px;margin-bottom:16px;align-items:center}
+    .search-bar{flex:1;position:relative}
+    .search-bar input{width:100%;padding:10px 14px 10px 36px;background:var(--glass);border:1px solid var(--border);border-radius:10px;color:var(--text)}
+    .search-bar .material-icons{position:absolute;left:10px;top:12px;color:var(--text2)}
+    .order-btn{background:var(--glass);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 14px;font-size:14px;cursor:pointer}
+    .order-dropdown{position:absolute;right:0;top:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(20px);z-index:20;display:none;min-width:200px}
+    .order-dropdown.show{display:block}
+    .order-dropdown div{padding:10px 16px;cursor:pointer}
+    .order-dropdown div:hover{background:var(--glass)}
+    .order-dropdown div.active{color:var(--neon)}
+    .list-title{font-weight:bold;margin-bottom:8px;color:var(--teal)}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;transition:0.2s}
+    .card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+    .card .info{display:flex;align-items:center;gap:10px;flex:1}
+    .card .name{font-weight:bold}
+    .card .name.presente{color:var(--neon)}
+    .card .name.ausente{color:var(--danger)}
+    .card .name.desistiu{color:var(--warning)}
+    .card .datetime{font-size:12px;color:var(--text2)}
+    .card .discount{font-size:12px;color:var(--warning)}
+    .admin-actions button{background:transparent;border:1px solid var(--teal);color:var(--teal);padding:4px 10px;border-radius:8px;font-size:12px;margin-left:4px}
+    .admin-actions button.remover{border-color:var(--danger);color:var(--danger)}
+    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(5px)}
+    .modal.active{display:flex;animation:fadeIn 0.3s ease}
+    .modal-content{background:var(--card);padding:24px;border-radius:20px;border:1px solid var(--border);max-width:400px;width:90%;max-height:80vh;overflow-y:auto}
+    .close-modal{position:absolute;top:10px;right:20px;cursor:pointer;color:var(--text2);font-size:24px}
+    .config-row{display:flex;gap:10px;margin-bottom:12px;align-items:center}
+    .config-row label{flex:1}
+    .config-row input{width:80px;padding:6px;border-radius:8px;background:var(--glass);border:1px solid var(--border);color:var(--text)}
+    .discount-table,.weekly-table{width:100%;border-collapse:collapse;margin-top:10px}
+    .discount-table th,.weekly-table th{background:var(--glass)}
+    .discount-table td,.weekly-table td{padding:8px;border:1px solid var(--border)}
+    .week-selector{display:flex;gap:10px;margin-bottom:12px;align-items:center}
+    .week-selector input{padding:8px;background:var(--glass);border:1px solid var(--border);border-radius:8px;color:var(--text)}
+    .device-list table{width:100%;border-collapse:collapse;margin-top:8px}
+    .device-list th,.device-list td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:left;font-size:13px}
+    .date-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+    .date-tab{background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:13px;cursor:pointer;transition:0.2s}
+    .date-tab.active{background:var(--teal);color:#000}
+    .empty{text-align:center;padding:40px;color:var(--text2)}
   </style>
 </head>
 <body>
@@ -223,7 +121,6 @@
     </div>
   </div>
 
-  <!-- Modals -->
   <div id="deviceModal" class="modal">
     <div class="modal-content">
       <span class="close-modal" id="closeDeviceModal">&times;</span>
@@ -249,7 +146,6 @@
     </div>
   </div>
 
-  <!-- TELA PRINCIPAL -->
   <div id="mainView" class="container">
     <div class="tab-bar">
       <div class="tab active" id="tabManha">☀️ Manhã</div>
@@ -285,43 +181,24 @@
     </div>
     <div class="list-title">Inscritos</div>
     <div id="hojeList"></div>
-    <div style="margin-top:10px; display:flex; gap:8px;">
+    <div style="margin-top:10px;display:flex;gap:8px;">
       <button class="btn danger" id="excluirSelecionados"><span class="material-icons">delete</span> Excluir selecionados</button>
       <button class="btn danger" id="limparTodosBtn"><span class="material-icons">delete_forever</span> Limpar todos</button>
     </div>
   </div>
 
-  <!-- TELAS SECUNDÁRIAS -->
-  <div id="discountsView" class="container" style="display:none">
-    <div class="list-title">Descontos de hoje</div>
-    <div id="discountsList"></div>
-  </div>
+  <div id="discountsView" class="container" style="display:none"><div class="list-title">Descontos de hoje</div><div id="discountsList"></div></div>
   <div id="weeklyView" class="container" style="display:none">
     <div class="list-title">Fechamento semanal</div>
-    <div class="week-selector">
-      <label>Semana:</label>
-      <input type="date" id="weekStartDate">
-      <span>até</span>
-      <input type="date" id="weekEndDate" readonly>
-      <button class="btn" id="loadWeekBtn">Carregar</button>
-    </div>
-    <p>Período: <span id="periodoLabel"></span></p>
-    <div id="weeklyContent"></div>
-    <div class="download-options">
-      <button class="btn" id="weeklyExcel">Excel</button>
-      <button class="btn" id="weeklyPdf">PDF</button>
-      <button class="btn" id="weeklyTxt">TXT</button>
-    </div>
+    <div class="week-selector"><label>Semana:</label><input type="date" id="weekStartDate"><span>até</span><input type="date" id="weekEndDate" readonly><button class="btn" id="loadWeekBtn">Carregar</button></div>
+    <p>Período: <span id="periodoLabel"></span></p><div id="weeklyContent"></div>
+    <div class="download-options"><button class="btn" id="weeklyExcel">Excel</button><button class="btn" id="weeklyPdf">PDF</button><button class="btn" id="weeklyTxt">TXT</button></div>
   </div>
   <div id="downloadsView" class="container" style="display:none">
     <div class="list-title">Download Relatórios</div>
     <div class="date-tabs" id="downloadDateTabs"></div>
-    <div class="download-options">
-      <button class="btn" id="downloadExcel">Excel</button>
-      <button class="btn" id="downloadPdf">PDF</button>
-      <button class="btn" id="downloadTxt">TXT</button>
-    </div>
-    <p id="downloadInfo" style="margin-top:8px; color:var(--text2);"></p>
+    <div class="download-options"><button class="btn" id="downloadExcel">Excel</button><button class="btn" id="downloadPdf">PDF</button><button class="btn" id="downloadTxt">TXT</button></div>
+    <p id="downloadInfo" style="margin-top:8px;color:var(--text2);"></p>
   </div>
   <div id="historyView" class="container" style="display:none">
     <div class="list-title">Histórico</div>
@@ -331,596 +208,524 @@
 </div>
 
 <script type="module">
-  const firebaseConfig = {
-    apiKey: "AIzaSyBp_7zJoEj6BgxSAIuWeUZHve1NgYbpxGk",
-    authDomain: "ponto-motoboy.firebaseapp.com",
-    databaseURL: "https://ponto-motoboy-default-rtdb.firebaseio.com",
-    projectId: "ponto-motoboy",
-    storageBucket: "ponto-motoboy.firebasestorage.app",
-    messagingSenderId: "526542472436",
-    appId: "1:526542472436:web:234049ec552928de3c8aa1",
-    measurementId: "G-R41TKKZSMN"
-  };
+// Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBp_7zJoEj6BgxSAIuWeUZHve1NgYbpxGk",
+  authDomain: "ponto-motoboy.firebaseapp.com",
+  databaseURL: "https://ponto-motoboy-default-rtdb.firebaseio.com",
+  projectId: "ponto-motoboy",
+  storageBucket: "ponto-motoboy.firebasestorage.app",
+  messagingSenderId: "526542472436",
+  appId: "1:526542472436:web:234049ec552928de3c8aa1",
+  measurementId: "G-R41TKKZSMN"
+};
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const registrosRef = ref(database, 'registros');
+const presenceRef = ref(database, 'presence');
+const configRef = ref(database, 'config');
+const discountConfigRef = ref(database, 'discountConfig');
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+// Presença
+const userId = Date.now().toString(36)+Math.random().toString(36).substr(2);
+const userPresenceRef = ref(database, `presence/${userId}`);
+(async()=>{
+  try{
+    const r=await fetch('https://api.ipify.org?format=json');
+    const {ip}=await r.json();
+    const ua=navigator.userAgent;
+    let b='Outro',o='Outro';
+    if(ua.includes('Chrome'))b='Chrome';
+    else if(ua.includes('Firefox'))b='Firefox';
+    else if(ua.includes('Safari'))b='Safari';
+    if(ua.includes('Windows'))o='Windows';
+    else if(ua.includes('Mac'))o='macOS';
+    else if(ua.includes('Android'))o='Android';
+    else if(ua.includes('iPhone')||ua.includes('iPad'))o='iOS';
+    set(userPresenceRef,{online:true,ip,browser:b,os:o,timestamp:serverTimestamp()});
+  }catch{set(userPresenceRef,{online:true,timestamp:serverTimestamp()})}
+})();
+onDisconnect(userPresenceRef).remove();
+onValue(presenceRef,snap=>{
+  const d=snap.val()||{};
+  document.getElementById('presence').innerHTML=`<div class="presence-dot"></div> ${Object.keys(d).length} ativo(s)`;
+});
 
-  const app = initializeApp(firebaseConfig);
-  const database = getDatabase(app);
-  const registrosRef = ref(database, 'registros');
-  const presenceRef = ref(database, 'presence');
-  const configRef = ref(database, 'config');
-  const discountConfigRef = ref(database, 'discountConfig');
+// Configs
+let limites={manha:16,noite:40};
+let discountConfig={
+  manha:{horaInicio:11,toleranciaMin:0,intervaloMin:15,valorInicial:15,valorIntervalo:2.5,maxDesconto:30},
+  noite:{horaInicio:17,toleranciaMin:14,intervaloMin:15,valorInicial:0,valorIntervalo:2.5,maxDesconto:30}
+};
+onValue(configRef,snap=>{if(snap.exists()){const d=snap.val();limites={manha:d.manha??16,noite:d.noite??40}}atualizarInterface()});
+onValue(discountConfigRef,snap=>{if(snap.exists())discountConfig=snap.val();atualizarInterface()});
 
-  // Presença com informações do dispositivo
-  const userId = Date.now().toString(36) + Math.random().toString(36).substr(2);
-  const userPresenceRef = ref(database, `presence/${userId}`);
-  async function updatePresence() {
-    try {
-      const r = await fetch('https://api.ipify.org?format=json');
-      const { ip } = await r.json();
-      const ua = navigator.userAgent;
-      let browser = 'Outro', os = 'Outro';
-      if (ua.includes('Chrome')) browser = 'Chrome';
-      else if (ua.includes('Firefox')) browser = 'Firefox';
-      else if (ua.includes('Safari')) browser = 'Safari';
-      if (ua.includes('Windows')) os = 'Windows';
-      else if (ua.includes('Mac')) os = 'macOS';
-      else if (ua.includes('Android')) os = 'Android';
-      else if (ua.includes('iPhone')||ua.includes('iPad')) os = 'iOS';
-      set(userPresenceRef, { online: true, ip, browser, os, timestamp: serverTimestamp() });
-    } catch { set(userPresenceRef, { online: true, timestamp: serverTimestamp() }); }
+// Estado
+let turno='manha';
+let db=[];
+let ordem='naoChegouPrimeiro';
+let filtroStatus=null;
+let selectedDayDownload=null;
+let selectedDayHistory=null;
+let weeklyData=[];
+
+onValue(registrosRef,snap=>{
+  const data=snap.val()||{};
+  db=Object.entries(data).map(([k,v])=>({...v,_firebaseKey:k}));
+  atualizarInterface();
+  updateAutocomplete();
+});
+
+function atualizarInterface(){
+  renderHoje();
+  renderSummary();
+  if(document.getElementById('discountsView').style.display==='block')renderDiscounts();
+  if(document.getElementById('historyView').style.display==='block')renderHist(selectedDayHistory);
+  if(document.getElementById('downloadsView').style.display==='block')renderDownTabs();
+}
+
+const now=()=>new Date(new Date().toLocaleString('en-US',{timeZone:'America/Sao_Paulo'}));
+const fmt=iso=>iso?new Date(iso).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})+' '+new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'America/Sao_Paulo'}):'';
+const isToday=iso=>iso&&now().toDateString()===new Date(iso).toDateString();
+
+function getInscritos(){
+  return db.filter(r=>r&&isToday(r.dataInscricao)&&r.status!=='removido'&&r.turno===turno);
+}
+
+function calcDesc(r){
+  if(!r.dataPresenca||r.status!=='presente')return 0;
+  const cfg=discountConfig[r.turno];
+  const d=new Date(r.dataPresenca);
+  const chegada=d.getHours()*60+d.getMinutes();
+  const inicio=cfg.horaInicio*60+(cfg.toleranciaMin||0);
+  if(chegada<=inicio)return 0;
+  const atraso=chegada-inicio;
+  const blocos=Math.ceil(atraso/cfg.intervaloMin);
+  let v=(cfg.valorInicial||0)+blocos*cfg.valorIntervalo;
+  return Math.min(v,cfg.maxDesconto);
+}
+
+// Som
+let sound=true;
+const ctx=new(window.AudioContext||window.webkitAudioContext)();
+function tone(f,d,t='sine'){if(!sound)return;const o=ctx.createOscillator();o.type=t;o.frequency.value=f;o.connect(ctx.destination);o.start();o.stop(ctx.currentTime+d)}
+function chegouSound(){tone(880,0.15)}
+function atrasoSound(){tone(220,0.3,'square')}
+
+// Abas
+document.getElementById('tabManha').onclick=()=>{turno='manha';document.getElementById('tabManha').classList.add('active');document.getElementById('tabNoite').classList.remove('active');filtroStatus=null;atualizarInterface()};
+document.getElementById('tabNoite').onclick=()=>{turno='noite';document.getElementById('tabNoite').classList.add('active');document.getElementById('tabManha').classList.remove('active');filtroStatus=null;atualizarInterface()};
+
+// Duplicatas
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  const mat=Array.from({length:m+1},(_,i)=>[i]);
+  for(let j=0;j<=n;j++)mat[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)mat[i][j]=a[i-1]===b[j-1]?mat[i-1][j-1]:1+Math.min(mat[i-1][j],mat[i][j-1],mat[i-1][j-1]);
+  return mat[m][n];
+}
+function dup(nome){
+  const limpo=nome.trim().toLowerCase();
+  const insc=getInscritos().filter(r=>r.turno===turno);
+  if(insc.some(r=>r.nome.trim().toLowerCase()===limpo)){alert('Este nome já está inscrito hoje neste turno.');return true}
+  for(const r of insc){
+    const ex=r.nome.trim().toLowerCase();
+    if(ex===limpo)continue;
+    const dist=levenshtein(limpo,ex);
+    const max=Math.max(limpo.length,ex.length);
+    const sim=1-dist/max;
+    if(sim>=0.7||limpo.includes(ex)||ex.includes(limpo)){
+      if(confirm(`Já existe um nome parecido: "${r.nome}". OK para BLOQUEAR, Cancelar para adicionar assim mesmo.`)){
+        alert('Cadastro não realizado.');
+        return true;
+      }
+    }
   }
-  updatePresence();
-  onDisconnect(userPresenceRef).remove();
+  return false;
+}
 
-  // Atualiza indicador de presença
-  onValue(presenceRef, snap => {
-    const data = snap.val() || {};
-    document.getElementById('presence').innerHTML = `<div class="presence-dot"></div> ${Object.keys(data).length} ativo(s)`;
-  });
+// Inscrever
+function inscrever(){
+  const nome=document.getElementById('nomeInput').value.trim();
+  if(!nome)return alert('Digite o nome');
+  if(getInscritos().length>=limites[turno])return alert('Vagas esgotadas!');
+  if(dup(nome))return;
+  push(registrosRef,{nome,turno,dataInscricao:now().toISOString(),status:'inscrito',dataPresenca:null});
+  document.getElementById('nomeInput').value='';
+  tone(660,0.1);
+}
+document.getElementById('inscreverBtn').onclick=inscrever;
+document.getElementById('nomeInput').addEventListener('keypress',e=>{if(e.key==='Enter')inscrever()});
 
-  // Configurações
-  let limites = { manha: 16, noite: 40 };
-  let discountConfig = {
-    manha: { horaInicio: 11, toleranciaMin: 0, intervaloMin: 15, valorInicial: 15, valorIntervalo: 2.5, maxDesconto: 30 },
-    noite: { horaInicio: 17, toleranciaMin: 14, intervaloMin: 15, valorInicial: 0, valorIntervalo: 2.5, maxDesconto: 30 }
+// Limpar todos
+document.getElementById('limparTodosBtn').onclick=async()=>{
+  if(!confirm(`Excluir TODOS os inscritos do turno ${turno} hoje?`))return;
+  for(const r of getInscritos()){if(r._firebaseKey)await remove(ref(database,`registros/${r._firebaseKey}`))}
+};
+
+// Seleção múltipla
+const sel=new Set();
+document.addEventListener('change',e=>{
+  if(e.target.classList.contains('selectCheckbox')){
+    e.target.checked?sel.add(e.target.dataset.id):sel.delete(e.target.dataset.id);
+  }
+});
+document.getElementById('excluirSelecionados').onclick=async()=>{
+  if(sel.size===0)return alert('Nenhum selecionado.');
+  if(!confirm(`Excluir ${sel.size} registro(s)?`))return;
+  for(const k of sel){await remove(ref(database,`registros/${k}`))}
+  sel.clear();
+};
+
+// Resumo
+function renderSummary(){
+  const insc=getInscritos();
+  const s={
+    total:insc.length,
+    presente:insc.filter(r=>r.status==='presente').length,
+    aguardando:insc.filter(r=>r.status==='inscrito').length,
+    ausente:insc.filter(r=>r.status==='ausente').length,
+    desistiu:insc.filter(r=>r.status==='desistiu').length
   };
-  onValue(configRef, snap => { if(snap.exists()) { const d=snap.val(); limites = { manha: d.manha??16, noite: d.noite??40 }; } atualizarInterface(); });
-  onValue(discountConfigRef, snap => { if(snap.exists()) discountConfig = snap.val(); atualizarInterface(); });
-
-  // Estado
-  let turnoSelecionado = 'manha';
-  let db = [];
-  let ordemAtual = 'naoChegouPrimeiro';
-  let selectedDayDownload = null;
-  let selectedDayHistory = null;
-  let weeklyData = [];
-
-  onValue(registrosRef, snap => {
-    // Converte objeto Firebase em array com chave real
-    const data = snap.val() || {};
-    db = Object.entries(data).map(([key, value]) => ({...value, _firebaseKey: key}));
-    atualizarInterface();
-    updateAutocomplete();
+  const c=document.getElementById('summaryContainer');
+  c.innerHTML=`
+    <div class="summary-card total ${filtroStatus===null?'active-filter':''}" data-f="todos"><div class="number">${s.total}</div><div class="label">Total</div></div>
+    <div class="summary-card presente ${filtroStatus==='presente'?'active-filter':''}" data-f="presente"><div class="number">${s.presente}</div><div class="label">✅ Chegaram</div></div>
+    <div class="summary-card aguardando ${filtroStatus==='inscrito'?'active-filter':''}" data-f="inscrito"><div class="number">${s.aguardando}</div><div class="label">⏳ Aguardando</div></div>
+    <div class="summary-card ausente ${filtroStatus==='ausente'?'active-filter':''}" data-f="ausente"><div class="number">${s.ausente}</div><div class="label">❌ Não chegaram</div></div>
+    <div class="summary-card desistiu ${filtroStatus==='desistiu'?'active-filter':''}" data-f="desistiu"><div class="number">${s.desistiu}</div><div class="label">🚫 Desistiram</div></div>`;
+  c.querySelectorAll('.summary-card').forEach(card=>{
+    card.onclick=()=>{
+      const f=card.dataset.f;
+      filtroStatus=(f==='todos'||filtroStatus===f)?null:f;
+      renderHoje();renderSummary();
+    };
   });
+  document.getElementById('turnoLabel').textContent=turno==='manha'?'Manhã':'Noite';
+  document.getElementById('vagasRestantes').textContent=`${s.total}/${limites[turno]}`;
+}
 
-  function atualizarInterface() {
+// Lista
+function renderHoje(){
+  let list=getInscritos();
+  if(filtroStatus)list=list.filter(r=>r.status===filtroStatus);
+  const termo=document.getElementById('searchInput').value.trim().toLowerCase();
+  if(termo)list=list.filter(r=>r.nome.toLowerCase().includes(termo));
+  switch(ordem){
+    case'chegouPrimeiro':list.sort((a,b)=>(a.status==='presente'?-1:1)-(b.status==='presente'?-1:1));break;
+    case'naoChegouPrimeiro':list.sort((a,b)=>(a.status!=='presente'?-1:1)-(b.status!=='presente'?-1:1));break;
+    case'nomeAZ':list.sort((a,b)=>a.nome.localeCompare(b.nome));break;
+    case'nomeZA':list.sort((a,b)=>b.nome.localeCompare(a.nome));break;
+    default:list.sort((a,b)=>new Date(b.dataInscricao)-new Date(a.dataInscricao));
+  }
+  const c=document.getElementById('hojeList');
+  if(!list.length){c.innerHTML='<div class="empty">Nenhum inscrito</div>';return}
+  c.innerHTML=list.map(r=>{
+    let icone='motorcycle',classe='',extra='';
+    if(r.status==='presente'){
+      icone='check_circle';classe='presente';
+      extra=`<div>${fmt(r.dataPresenca)}</div>`;
+      if(calcDesc(r)>0)extra+=`<div style="color:var(--warning)">Desconto R$ ${calcDesc(r).toFixed(2)}</div>`;
+    }else if(r.status==='ausente'){icone='cancel';classe='ausente';extra='<div>Não compareceu</div>'}
+    else if(r.status==='desistiu'){icone='remove_circle';classe='desistiu';extra='<div>Desistiu</div>'}
+    else extra='<div>Aguardando</div>';
+    const ch=sel.has(r._firebaseKey)?'checked':'';
+    return`<div class="card">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" class="selectCheckbox" data-id="${r._firebaseKey}" ${ch} style="transform:scale(1.2);">
+        <span class="material-icons" style="color:${icone==='check_circle'?'var(--neon)':icone==='cancel'?'var(--danger)':icone==='remove_circle'?'var(--warning)':'var(--text)'}">${icone}</span>
+        <div><div class="name ${classe}">${r.nome}</div>${extra}</div>
+      </div>
+      <div class="admin-actions">
+        ${r.status==='inscrito'?`<button class="chegou" data-id="${r._firebaseKey}">✅</button><button class="naoChegou" data-id="${r._firebaseKey}">❌</button><button class="desistiu" data-id="${r._firebaseKey}">🚫</button>`:''}
+        ${r.status==='presente'?`<button class="editarHora" data-id="${r._firebaseKey}">✏️</button>`:''}
+        <button class="remover" data-id="${r._firebaseKey}">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+document.getElementById('searchInput').oninput=renderHoje;
+
+// Ações
+document.addEventListener('click',e=>{
+  if(!e.target.dataset.id)return;
+  const k=e.target.dataset.id;
+  const reg=db.find(r=>r._firebaseKey===k);
+  if(!reg)return;
+  if(e.target.classList.contains('chegou')){
+    reg.status='presente';reg.dataPresenca=now().toISOString();
+    set(ref(database,`registros/${k}`),reg);
+    calcDesc(reg)>0?atrasoSound():chegouSound();
+  }else if(e.target.classList.contains('naoChegou')){
+    reg.status='ausente';reg.dataPresenca=null;set(ref(database,`registros/${k}`),reg);
+  }else if(e.target.classList.contains('desistiu')){
+    reg.status='desistiu';reg.dataPresenca=null;set(ref(database,`registros/${k}`),reg);
+  }else if(e.target.classList.contains('remover')){
+    if(confirm('Remover?'))remove(ref(database,`registros/${k}`));
+  }else if(e.target.classList.contains('editarHora')){
+    const d=new Date(reg.dataPresenca||now());
+    const hh=String(d.getHours()).padStart(2,'0'),mm=String(d.getMinutes()).padStart(2,'0');
+    const inp=prompt('Novo horário (HH:MM):',`${hh}:${mm}`);
+    if(!inp)return;
+    const[h,m]=inp.split(':').map(Number);
+    if(isNaN(h)||isNaN(m))return alert('Inválido');
+    d.setHours(h,m,0,0);reg.dataPresenca=d.toISOString();
+    set(ref(database,`registros/${k}`),reg);
+  }
+});
+
+// Ordenação
+const ob=document.getElementById('orderButton'),od=document.getElementById('orderDropdown');
+ob.onclick=e=>{e.stopPropagation();od.classList.toggle('show')};
+document.addEventListener('click',()=>od.classList.remove('show'));
+od.querySelectorAll('div').forEach(d=>{
+  d.onclick=e=>{
+    ordem=e.target.dataset.value;
+    od.querySelectorAll('div').forEach(x=>x.classList.remove('active'));
+    e.target.classList.add('active');
+    od.classList.remove('show');
     renderHoje();
-    renderSummary();
-    if (document.getElementById('discountsView').style.display === 'block') renderDiscounts();
-    if (document.getElementById('historyView').style.display === 'block') renderHistorico();
-    if (document.getElementById('downloadsView').style.display === 'block') renderDownloadTabs();
-  }
+  };
+});
 
-  // Funções auxiliares
-  const nowBrasilia = () => new Date(new Date().toLocaleString('en-US', {timeZone:'America/Sao_Paulo'}));
-  const formatDisplay = iso => iso ? new Date(iso).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) + ' ' + new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'America/Sao_Paulo'}) : '';
-  const isToday = iso => iso && nowBrasilia().toDateString() === new Date(iso).toDateString();
+// Dispositivos
+document.getElementById('presence').onclick=async()=>{
+  const snap=await new Promise(res=>onValue(presenceRef,res,{onlyOnce:true}));
+  const data=snap.val()||{};
+  let h='<table><tr><th>IP</th><th>Navegador</th><th>SO</th></tr>';
+  for(const[,v]of Object.entries(data))h+=`<tr><td>${v.ip||'N/D'}</td><td>${v.browser||'N/D'}</td><td>${v.os||'N/D'}</td></tr>`;
+  document.getElementById('deviceList').innerHTML=h||'Nenhum dispositivo.';
+  document.getElementById('deviceModal').classList.add('active');
+};
+document.getElementById('closeDeviceModal').onclick=()=>document.getElementById('deviceModal').classList.remove('active');
 
-  function getInscricoesDoDia() {
-    return db.filter(r => r && isToday(r.dataInscricao) && r.status !== 'removido' && r.turno === turnoSelecionado);
-  }
+// Descontos diários
+function renderDiscounts(){
+  const list=getInscritos().filter(r=>r.status==='presente');
+  const c=document.getElementById('discountsList');
+  if(!list.length){c.innerHTML='<div class="empty">Nenhum desconto hoje</div>';return}
+  c.innerHTML=`<table class="discount-table"><tr><th>Nome</th><th>Turno</th><th>Chegada</th><th>Desconto</th></tr>
+    ${list.map(r=>`<tr><td>${r.nome}</td><td>${r.turno}</td><td>${fmt(r.dataPresenca)}</td><td>R$ ${calcDesc(r).toFixed(2)}</td></tr>`).join('')}</table>`;
+}
 
-  function calcularDesconto(registro) {
-    if (!registro.dataPresenca || registro.status !== 'presente') return 0;
-    const cfg = discountConfig[registro.turno];
-    const d = new Date(registro.dataPresenca);
-    const horaChegada = d.getHours()*60 + d.getMinutes();
-    const horaInicioMin = cfg.horaInicio*60 + (cfg.toleranciaMin || 0);
-    if (horaChegada <= horaInicioMin) return 0;
-    const atrasoMin = horaChegada - horaInicioMin;
-    const blocos = Math.ceil(atrasoMin / cfg.intervaloMin);
-    let valor = (cfg.valorInicial || 0) + blocos * cfg.valorIntervalo;
-    return Math.min(valor, cfg.maxDesconto);
-  }
-
-  // Sons
-  let soundEnabled = true;
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  function playTone(f,d,t='sine') { if(!soundEnabled) return; const o=audioCtx.createOscillator(); o.type=t; o.frequency.value=f; o.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+d); }
-  function playChegou() { playTone(880,0.15); }
-  function playAtraso() { playTone(220,0.3,'square'); }
-
-  // UI - Abas
-  document.getElementById('tabManha').addEventListener('click', ()=> {
-    turnoSelecionado='manha';
-    document.getElementById('tabManha').classList.add('active');
-    document.getElementById('tabNoite').classList.remove('active');
-    atualizarInterface();
+// Fechamento semanal
+function getQuintas(){
+  const dates=db.map(r=>new Date(r.dataPresenca||r.dataInscricao));
+  if(!dates.length)return[new Date()];
+  const min=new Date(Math.min(...dates)),max=new Date(Math.max(...dates));
+  const qs=[];const d=new Date(min);d.setDate(d.getDate()-((d.getDay()+3)%7));
+  while(d<=max){qs.push(new Date(d));d.setDate(d.getDate()+7)}
+  return qs.length?qs:[new Date()];
+}
+function renderWeekSel(){
+  const qs=getQuintas();if(!qs.length)return;
+  const hoje=now();let q=qs[0];
+  for(const d of qs)if(d<=hoje)q=d;
+  document.getElementById('weekStartDate').value=q.toISOString().split('T')[0];
+  const fim=new Date(q);fim.setDate(fim.getDate()+7);
+  document.getElementById('weekEndDate').value=fim.toISOString().split('T')[0];
+  loadWeek();
+}
+function loadWeek(){
+  const inicio=new Date(document.getElementById('weekStartDate').value+'T00:00:00-03:00');
+  const fim=new Date(document.getElementById('weekEndDate').value+'T00:00:00-03:00');
+  document.getElementById('periodoLabel').textContent=`${inicio.toLocaleDateString('pt-BR')} até ${fim.toLocaleDateString('pt-BR')}`;
+  const regs=db.filter(r=>r.status==='presente'&&new Date(r.dataPresenca)>=inicio&&new Date(r.dataPresenca)<fim);
+  const mapa=new Map();
+  regs.forEach(r=>{
+    const ch=`${r.nome}|${r.turno}`;
+    if(!mapa.has(ch))mapa.set(ch,{nome:r.nome,turno:r.turno,total:0});
+    mapa.get(ch).total+=calcDesc(r);
   });
-  document.getElementById('tabNoite').addEventListener('click', ()=> {
-    turnoSelecionado='noite';
-    document.getElementById('tabNoite').classList.add('active');
-    document.getElementById('tabManha').classList.remove('active');
-    atualizarInterface();
-  });
+  weeklyData=Array.from(mapa.values()).sort((a,b)=>a.nome.localeCompare(b.nome));
+  const c=document.getElementById('weeklyContent');
+  if(!weeklyData.length){c.innerHTML='<div class="empty">Nenhum desconto no período.</div>';return}
+  c.innerHTML=`<table class="weekly-table"><tr><th>Nome</th><th>Turno</th><th>Desconto Total</th></tr>
+    ${weeklyData.map(d=>`<tr><td>${d.nome}</td><td>${d.turno}</td><td>R$ ${d.total.toFixed(2)}</td></tr>`).join('')}</table>`;
+}
+document.getElementById('loadWeekBtn').onclick=loadWeek;
+document.getElementById('weekStartDate').onchange=loadWeek;
+function expSemanal(arr,fmt){
+  if(!arr.length)return alert('Nenhum dado.');
+  if(fmt==='excel'){
+    const ws=XLSX.utils.json_to_sheet(arr.map(d=>({Nome:d.nome,Turno:d.turno,'Desconto Total':d.total.toFixed(2)})));
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Fechamento');XLSX.writeFile(wb,'fechamento.xlsx');
+  }else if(fmt==='pdf'){
+    const{jsPDF}=window.jspdf;const doc=new jsPDF();
+    doc.autoTable({head:[['Nome','Turno','Desconto Total']],body:arr.map(d=>[d.nome,d.turno,`R$ ${d.total.toFixed(2)}`])});
+    doc.save('fechamento.pdf');
+  }else if(fmt==='txt'){
+    let t='Fechamento\n\n';arr.forEach(d=>t+=`${d.nome} (${d.turno}) - R$ ${d.total.toFixed(2)}\n`);
+    const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='fechamento.txt';a.click();
+  }
+}
+document.getElementById('weeklyExcel').onclick=()=>expSemanal(weeklyData,'excel');
+document.getElementById('weeklyPdf').onclick=()=>expSemanal(weeklyData,'pdf');
+document.getElementById('weeklyTxt').onclick=()=>expSemanal(weeklyData,'txt');
 
-  // Inscrever
-  document.getElementById('inscreverBtn').addEventListener('click', ()=>{
-    const nome = document.getElementById('nomeInput').value.trim();
-    if(!nome) return alert('Digite o nome');
-    if(getInscricoesDoDia().length >= limites[turnoSelecionado]) return alert('Vagas esgotadas!');
-    push(registrosRef, {
-      nome, turno: turnoSelecionado,
-      dataInscricao: nowBrasilia().toISOString(),
-      status: 'inscrito',
-      dataPresenca: null
+// Downloads diários
+function renderDownTabs(){
+  const dias=[...new Set(db.map(r=>new Date(r.dataInscricao||r.dataHora).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})))].sort((a,b)=>{
+    const[da,ma,aa]=a.split('/');const[db,mb,ab]=b.split('/');return new Date(aa,ma-1,da)<new Date(ab,mb-1,db)?1:-1;
+  });
+  const tabs=document.getElementById('downloadDateTabs');
+  tabs.innerHTML=dias.map(d=>`<span class="date-tab" data-dia="${d}">${d}</span>`).join('');
+  if(!selectedDayDownload&&dias.length)selectedDayDownload=dias[0];
+  tabs.querySelectorAll('.date-tab').forEach(t=>t.classList.toggle('active',t.dataset.dia===selectedDayDownload));
+  document.getElementById('downloadInfo').textContent=selectedDayDownload?`Dia selecionado: ${selectedDayDownload}`:'';
+}
+document.getElementById('downloadDateTabs').onclick=e=>{
+  if(e.target.classList.contains('date-tab')){selectedDayDownload=e.target.dataset.dia;renderDownTabs()}
+};
+function getRegDia(dia){
+  return db.filter(r=>{
+    const d=new Date(r.dataInscricao||r.dataHora);
+    return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})===dia&&r.status!=='removido';
+  });
+}
+function exportar(arr,fmt){
+  if(!arr.length)return alert('Nenhum registro.');
+  const dados=arr.map(r=>({
+    Nome:r.nome,Turno:r.turno,
+    Status:r.status==='presente'?'Chegou':r.status==='ausente'?'Não chegou':r.status==='desistiu'?'Desistiu':'Inscrito',
+    'Data Inscrição':fmt(r.dataInscricao).split(' ')[0],
+    'Hora Chegada':r.dataPresenca?fmt(r.dataPresenca).split(' ')[1]:'-',
+    Desconto:r.status==='presente'?calcDesc(r).toFixed(2):'0.00'
+  }));
+  if(fmt==='excel'){
+    const ws=XLSX.utils.json_to_sheet(dados),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Presença');XLSX.writeFile(wb,'presenca.xlsx');
+  }else if(fmt==='pdf'){
+    const{jsPDF}=window.jspdf;const doc=new jsPDF();
+    doc.autoTable({head:[['Nome','Turno','Status','Data','Chegada','Desconto']],body:dados.map(d=>[d.Nome,d.Turno,d.Status,d['Data Inscrição'],d['Hora Chegada'],d.Desconto])});
+    doc.save('presenca.pdf');
+  }else if(fmt==='txt'){
+    let t='Lista de Presença\n\n';
+    arr.forEach((r,i)=>{
+      const st=r.status==='presente'?'✅':r.status==='ausente'?'❌':r.status==='desistiu'?'🚫':'⏳';
+      t+=`${i+1} ${r.nome} ${st}`;
+      if(r.status==='presente'){t+=` ${fmt(r.dataPresenca).split(' ')[1]}`;const d=calcDesc(r);if(d>0)t+=` (R$ ${d.toFixed(2)})`}
+      t+='\n';
     });
-    document.getElementById('nomeInput').value = '';
-    playTone(660,0.1);
-  });
-
-  // Limpar todos (corrigido com chave Firebase)
-  document.getElementById('limparTodosBtn').addEventListener('click', async ()=>{
-    if(!confirm(`Excluir TODOS os inscritos do turno ${turnoSelecionado} hoje?`)) return;
-    const inscritos = getInscricoesDoDia();
-    for (const r of inscritos) {
-      if (r._firebaseKey) {
-        await remove(ref(database, `registros/${r._firebaseKey}`));
-      }
-    }
-  });
-
-  // Excluir selecionados
-  document.getElementById('excluirSelecionados').addEventListener('click', async ()=>{
-    const selecionados = db.filter(r => r._firebaseKey && selectedIds.has(r._firebaseKey));
-    if(!selecionados.length) return alert('Nenhum selecionado.');
-    if(!confirm(`Excluir ${selecionados.length} registro(s)?`)) return;
-    for (const r of selecionados) {
-      await remove(ref(database, `registros/${r._firebaseKey}`));
-    }
-    selectedIds.clear();
-  });
-
-  // Renderização
-  function renderSummary() {
-    const insc = getInscricoesDoDia();
-    const stats = {
-      total: insc.length,
-      presente: insc.filter(r=>r.status==='presente').length,
-      aguardando: insc.filter(r=>r.status==='inscrito').length,
-      ausente: insc.filter(r=>r.status==='ausente').length,
-      desistiu: insc.filter(r=>r.status==='desistiu').length
-    };
-    document.getElementById('summaryContainer').innerHTML = `
-      <div class="summary-card total"><div class="number">${stats.total}</div><div class="label">Total</div></div>
-      <div class="summary-card presente"><div class="number">${stats.presente}</div><div class="label">✅ Chegaram</div></div>
-      <div class="summary-card aguardando"><div class="number">${stats.aguardando}</div><div class="label">⏳ Aguardando</div></div>
-      <div class="summary-card ausente"><div class="number">${stats.ausente}</div><div class="label">❌ Não chegaram</div></div>
-      <div class="summary-card desistiu"><div class="number">${stats.desistiu}</div><div class="label">🚫 Desistiram</div></div>`;
-    document.getElementById('turnoLabel').textContent = turnoSelecionado === 'manha' ? 'Manhã' : 'Noite';
-    document.getElementById('vagasRestantes').textContent = `${stats.total}/${limites[turnoSelecionado]}`;
+    const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lista.txt';a.click();
   }
+}
+document.getElementById('downloadExcel').onclick=()=>exportar(getRegDia(selectedDayDownload),'excel');
+document.getElementById('downloadPdf').onclick=()=>exportar(getRegDia(selectedDayDownload),'pdf');
+document.getElementById('downloadTxt').onclick=()=>exportar(getRegDia(selectedDayDownload),'txt');
 
-  function renderHoje() {
-    let list = getInscricoesDoDia();
-    const termo = document.getElementById('searchInput').value.trim().toLowerCase();
-    if (termo) list = list.filter(r => r.nome.toLowerCase().includes(termo));
-    // Ordenação
-    switch(ordemAtual) {
-      case 'chegouPrimeiro':
-        list.sort((a,b)=> (a.status==='presente'?-1:1) - (b.status==='presente'?-1:1));
-        break;
-      case 'naoChegouPrimeiro':
-        list.sort((a,b)=> (a.status!=='presente'?-1:1) - (b.status!=='presente'?-1:1));
-        break;
-      case 'nomeAZ': list.sort((a,b)=> a.nome.localeCompare(b.nome)); break;
-      case 'nomeZA': list.sort((a,b)=> b.nome.localeCompare(a.nome)); break;
-      // outras ordenações omitidas por brevidade (mas podem ser adicionadas)
-      default: list.sort((a,b)=> new Date(b.dataInscricao) - new Date(a.dataInscricao));
-    }
-    const container = document.getElementById('hojeList');
-    if(!list.length) { container.innerHTML='<div class="empty">Nenhum inscrito</div>'; return; }
-    container.innerHTML = list.map(r => {
-      let icone='motorcycle', classe='', extra='';
-      if(r.status==='presente') {
-        icone='check_circle'; classe='presente';
-        extra=`<div>${formatDisplay(r.dataPresenca)}</div>`;
-        if(calcularDesconto(r)>0) extra+=`<div style="color:var(--warning)">Desconto R$ ${calcularDesconto(r).toFixed(2)}</div>`;
-      } else if(r.status==='ausente') {
-        icone='cancel'; classe='ausente'; extra='<div>Não compareceu</div>';
-      } else if(r.status==='desistiu') {
-        icone='remove_circle'; classe='desistiu'; extra='<div>Desistiu</div>';
-      } else extra='<div>Aguardando</div>';
-
-      return `<div class="card">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <input type="checkbox" class="selectCheckbox" data-id="${r._firebaseKey}" style="transform:scale(1.2);">
-          <span class="material-icons" style="color:${icone==='check_circle'?'var(--neon)':icone==='cancel'?'var(--danger)':icone==='remove_circle'?'var(--warning)':'var(--text)'}">${icone}</span>
-          <div>
-            <div class="name ${classe}">${r.nome}</div>
-            ${extra}
-          </div>
-        </div>
-        <div class="admin-actions">
-          ${r.status==='inscrito'?`<button class="chegou" data-id="${r._firebaseKey}">✅</button><button class="naoChegou" data-id="${r._firebaseKey}">❌</button><button class="desistiu" data-id="${r._firebaseKey}">🚫</button>`:''}
-          ${r.status==='presente'?`<button class="editarHora" data-id="${r._firebaseKey}">✏️</button>`:''}
-          <button class="remover" data-id="${r._firebaseKey}">🗑️</button>
-        </div>
-      </div>`;
-    }).join('');
-  }
-
-  // Seleção múltipla
-  const selectedIds = new Set();
-  document.addEventListener('change', e => {
-    if (e.target.classList.contains('selectCheckbox')) {
-      const id = e.target.dataset.id;
-      e.target.checked ? selectedIds.add(id) : selectedIds.delete(id);
-    }
+// Histórico (sem excluídos!)
+function renderHist(diaSel=null){
+  const dias=[...new Set(db.filter(r=>r.status!=='removido').map(r=>new Date(r.dataInscricao||r.dataHora).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})))].sort((a,b)=>{
+    const[da,ma,aa]=a.split('/');const[db,mb,ab]=b.split('/');return new Date(aa,ma-1,da)<new Date(ab,mb-1,db)?1:-1;
   });
+  const tabs=document.getElementById('dateTabs');
+  tabs.innerHTML=dias.map(d=>`<span class="date-tab" data-dia="${d}">${d}</span>`).join('');
+  if(!diaSel&&dias.length)diaSel=dias[0];
+  selectedDayHistory=diaSel;
+  tabs.querySelectorAll('.date-tab').forEach(t=>t.classList.toggle('active',t.dataset.dia===selectedDayHistory));
+  const filt=selectedDayHistory?db.filter(r=>{
+    const d=new Date(r.dataInscricao||r.dataHora);
+    return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})===selectedDayHistory&&r.status!=='removido';
+  }):db.filter(r=>r.status!=='removido');
+  const list=document.getElementById('historyDayList');
+  list.innerHTML=filt.length?filt.map(r=>{
+    let st=r.status==='presente'?'✅':r.status==='ausente'?'❌':r.status==='desistiu'?'🚫':'⏳';
+    const desc=r.status==='presente'?calcDesc(r):0;
+    return`<div class="card"><div class="info"><span class="material-icons">${r.status==='presente'?'check_circle':r.status==='ausente'?'cancel':'motorcycle'}</span><div><div class="name">${r.nome} ${st}</div><div class="datetime">Insc: ${fmt(r.dataInscricao)}</div>${r.status==='presente'?`<div class="datetime">Chegada: ${fmt(r.dataPresenca)}</div>`:''}${desc>0?`<div class="discount">Desconto R$ ${desc.toFixed(2)}</div>`:''}</div></div></div>`;
+  }).join(''):'<div class="empty">Nenhum registro</div>';
+}
+document.getElementById('dateTabs').onclick=e=>{if(e.target.classList.contains('date-tab'))renderHist(e.target.dataset.dia)};
 
-  // Ações nos botões
-  document.addEventListener('click', e => {
-    if (!e.target.dataset.id) return;
-    const firebaseKey = e.target.dataset.id;
-    const reg = db.find(r => r._firebaseKey === firebaseKey);
-    if (!reg) return;
-    if (e.target.classList.contains('chegou')) {
-      reg.status = 'presente';
-      reg.dataPresenca = nowBrasilia().toISOString();
-      set(ref(database, `registros/${firebaseKey}`), reg);
-      calcularDesconto(reg) > 0 ? playAtraso() : playChegou();
-    } else if (e.target.classList.contains('naoChegou')) {
-      reg.status = 'ausente';
-      reg.dataPresenca = null;
-      set(ref(database, `registros/${firebaseKey}`), reg);
-    } else if (e.target.classList.contains('desistiu')) {
-      reg.status = 'desistiu';
-      reg.dataPresenca = null;
-      set(ref(database, `registros/${firebaseKey}`), reg);
-    } else if (e.target.classList.contains('remover')) {
-      if(confirm('Remover?')) remove(ref(database, `registros/${firebaseKey}`));
-    } else if (e.target.classList.contains('editarHora')) {
-      const d = new Date(reg.dataPresenca || nowBrasilia());
-      const hh = String(d.getHours()).padStart(2,'0');
-      const mm = String(d.getMinutes()).padStart(2,'0');
-      const input = prompt('Novo horário (HH:MM):', `${hh}:${mm}`);
-      if(!input) return;
-      const [h,m] = input.split(':').map(Number);
-      if(isNaN(h)||isNaN(m)) return alert('Inválido');
-      d.setHours(h,m,0,0);
-      reg.dataPresenca = d.toISOString();
-      set(ref(database, `registros/${firebaseKey}`), reg);
-    }
-  });
+// Navegação
+function setViews(m,d,w,down,h){
+  document.getElementById('mainView').style.display=m?'block':'none';
+  document.getElementById('discountsView').style.display=d?'block':'none';
+  document.getElementById('weeklyView').style.display=w?'block':'none';
+  document.getElementById('downloadsView').style.display=down?'block':'none';
+  document.getElementById('historyView').style.display=h?'block':'none';
+  document.getElementById('backBtn').style.display=m?'none':'inline-block';
+  document.getElementById('historyBtn').style.display=h?'none':'inline-block';
+}
+document.getElementById('discountsBtn').onclick=()=>setViews(false,true,false,false,false);
+document.getElementById('weeklyBtn').onclick=()=>{setViews(false,false,true,false,false);renderWeekSel()};
+document.getElementById('downloadBtn').onclick=()=>{setViews(false,false,false,true,false);selectedDayDownload=null;renderDownTabs()};
+document.getElementById('historyBtn').onclick=()=>{setViews(false,false,false,false,true);renderHist()};
+document.getElementById('backBtn').onclick=()=>setViews(true,false,false,false,false);
 
-  // Ordenação
-  const orderBtn = document.getElementById('orderButton');
-  const orderDropdown = document.getElementById('orderDropdown');
-  orderBtn.addEventListener('click', (e) => { e.stopPropagation(); orderDropdown.classList.toggle('show'); });
-  document.addEventListener('click', () => orderDropdown.classList.remove('show'));
-  orderDropdown.querySelectorAll('div').forEach(div => {
-    div.addEventListener('click', (e) => {
-      ordemAtual = e.target.dataset.value;
-      orderDropdown.querySelectorAll('div').forEach(d => d.classList.remove('active'));
-      e.target.classList.add('active');
-      orderDropdown.classList.remove('show');
-      renderHoje();
-    });
-  });
+// Config descontos
+document.getElementById('configDiscountsBtn').onclick=()=>{
+  const m=discountConfig.manha,n=discountConfig.noite;
+  document.getElementById('discountConfigContent').innerHTML=`
+    <h3>Manhã</h3>
+    <div class="config-row"><label>Hora início</label><input id="mH" value="${m.horaInicio}" type="number"></div>
+    <div class="config-row"><label>Tolerância (min)</label><input id="mT" value="${m.toleranciaMin}" type="number"></div>
+    <div class="config-row"><label>Intervalo (min)</label><input id="mI" value="${m.intervaloMin}" type="number"></div>
+    <div class="config-row"><label>Valor inicial (R$)</label><input id="mVI" value="${m.valorInicial}" type="number" step="0.01"></div>
+    <div class="config-row"><label>Valor p/ intervalo (R$)</label><input id="mVI2" value="${m.valorIntervalo}" type="number" step="0.01"></div>
+    <div class="config-row"><label>Máximo desconto (R$)</label><input id="mMax" value="${m.maxDesconto}" type="number" step="0.01"></div>
+    <hr><h3>Noite</h3>
+    <div class="config-row"><label>Hora início</label><input id="nH" value="${n.horaInicio}" type="number"></div>
+    <div class="config-row"><label>Tolerância (min)</label><input id="nT" value="${n.toleranciaMin}" type="number"></div>
+    <div class="config-row"><label>Intervalo (min)</label><input id="nI" value="${n.intervaloMin}" type="number"></div>
+    <div class="config-row"><label>Valor inicial (R$)</label><input id="nVI" value="${n.valorInicial}" type="number" step="0.01"></div>
+    <div class="config-row"><label>Valor p/ intervalo (R$)</label><input id="nVI2" value="${n.valorIntervalo}" type="number" step="0.01"></div>
+    <div class="config-row"><label>Máximo desconto (R$)</label><input id="nMax" value="${n.maxDesconto}" type="number" step="0.01"></div>`;
+  document.getElementById('discountConfigModal').classList.add('active');
+};
+document.getElementById('closeDiscountConfigModal').onclick=()=>document.getElementById('discountConfigModal').classList.remove('active');
+document.getElementById('saveDiscountConfig').onclick=()=>{
+  discountConfig={
+    manha:{horaInicio:+document.getElementById('mH').value,toleranciaMin:+document.getElementById('mT').value,intervaloMin:+document.getElementById('mI').value,valorInicial:+document.getElementById('mVI').value,valorIntervalo:+document.getElementById('mVI2').value,maxDesconto:+document.getElementById('mMax').value},
+    noite:{horaInicio:+document.getElementById('nH').value,toleranciaMin:+document.getElementById('nT').value,intervaloMin:+document.getElementById('nI').value,valorInicial:+document.getElementById('nVI').value,valorIntervalo:+document.getElementById('nVI2').value,maxDesconto:+document.getElementById('nMax').value}
+  };
+  set(discountConfigRef,discountConfig);
+  document.getElementById('discountConfigModal').classList.remove('active');
+  atualizarInterface();
+};
 
-  // Modal Dispositivos
-  document.getElementById('presence').addEventListener('click', async ()=>{
-    const snap = await new Promise(res => onValue(presenceRef, res, {onlyOnce:true}));
-    const data = snap.val() || {};
-    let html = '<table><tr><th>IP</th><th>Navegador</th><th>SO</th></tr>';
-    for(const [k,v] of Object.entries(data)) {
-      html += `<tr><td>${v.ip||'N/D'}</td><td>${v.browser||'N/D'}</td><td>${v.os||'N/D'}</td></tr>`;
-    }
-    document.getElementById('deviceList').innerHTML = html || 'Nenhum dispositivo.';
-    document.getElementById('deviceModal').classList.add('active');
-  });
-  document.getElementById('closeDeviceModal').addEventListener('click', ()=> document.getElementById('deviceModal').classList.remove('active'));
+// Config vagas
+document.getElementById('configBtn').onclick=()=>{
+  document.getElementById('limiteManha').value=limites.manha;
+  document.getElementById('limiteNoite').value=limites.noite;
+  document.getElementById('configModal').classList.add('active');
+};
+document.getElementById('closeConfigModal').onclick=()=>document.getElementById('configModal').classList.remove('active');
+document.getElementById('salvarConfig').onclick=()=>{
+  limites={manha:+document.getElementById('limiteManha').value,noite:+document.getElementById('limiteNoite').value};
+  set(configRef,limites);
+  document.getElementById('configModal').classList.remove('active');
+  atualizarInterface();
+};
 
-  // Configuração de descontos
-  document.getElementById('configDiscountsBtn').addEventListener('click', ()=>{
-    const m = discountConfig.manha, n = discountConfig.noite;
-    document.getElementById('discountConfigContent').innerHTML = `
-      <h3>Manhã</h3>
-      <div class="config-row"><label>Hora início</label><input id="manhaHora" value="${m.horaInicio}" type="number"></div>
-      <div class="config-row"><label>Tolerância (min)</label><input id="manhaTolerancia" value="${m.toleranciaMin}" type="number"></div>
-      <div class="config-row"><label>Intervalo (min)</label><input id="manhaIntervalo" value="${m.intervaloMin}" type="number"></div>
-      <div class="config-row"><label>Valor inicial (R$)</label><input id="manhaValorInicial" value="${m.valorInicial}" type="number" step="0.01"></div>
-      <div class="config-row"><label>Valor p/ intervalo (R$)</label><input id="manhaValorIntervalo" value="${m.valorIntervalo}" type="number" step="0.01"></div>
-      <div class="config-row"><label>Máximo desconto (R$)</label><input id="manhaMax" value="${m.maxDesconto}" type="number" step="0.01"></div>
-      <hr>
-      <h3>Noite</h3>
-      <div class="config-row"><label>Hora início</label><input id="noiteHora" value="${n.horaInicio}" type="number"></div>
-      <div class="config-row"><label>Tolerância (min)</label><input id="noiteTolerancia" value="${n.toleranciaMin}" type="number"></div>
-      <div class="config-row"><label>Intervalo (min)</label><input id="noiteIntervalo" value="${n.intervaloMin}" type="number"></div>
-      <div class="config-row"><label>Valor inicial (R$)</label><input id="noiteValorInicial" value="${n.valorInicial}" type="number" step="0.01"></div>
-      <div class="config-row"><label>Valor p/ intervalo (R$)</label><input id="noiteValorIntervalo" value="${n.valorIntervalo}" type="number" step="0.01"></div>
-      <div class="config-row"><label>Máximo desconto (R$)</label><input id="noiteMax" value="${n.maxDesconto}" type="number" step="0.01"></div>
-    `;
-    document.getElementById('discountConfigModal').classList.add('active');
-  });
-  document.getElementById('closeDiscountConfigModal').addEventListener('click', ()=> document.getElementById('discountConfigModal').classList.remove('active'));
-  document.getElementById('saveDiscountConfig').addEventListener('click', ()=>{
-    discountConfig = {
-      manha: {
-        horaInicio: +document.getElementById('manhaHora').value,
-        toleranciaMin: +document.getElementById('manhaTolerancia').value,
-        intervaloMin: +document.getElementById('manhaIntervalo').value,
-        valorInicial: +document.getElementById('manhaValorInicial').value,
-        valorIntervalo: +document.getElementById('manhaValorIntervalo').value,
-        maxDesconto: +document.getElementById('manhaMax').value
-      },
-      noite: {
-        horaInicio: +document.getElementById('noiteHora').value,
-        toleranciaMin: +document.getElementById('noiteTolerancia').value,
-        intervaloMin: +document.getElementById('noiteIntervalo').value,
-        valorInicial: +document.getElementById('noiteValorInicial').value,
-        valorIntervalo: +document.getElementById('noiteValorIntervalo').value,
-        maxDesconto: +document.getElementById('noiteMax').value
-      }
-    };
-    set(discountConfigRef, discountConfig);
-    document.getElementById('discountConfigModal').classList.remove('active');
-    atualizarInterface();
-  });
+// Autocomplete
+function updateAutocomplete(){
+  document.getElementById('nomeList').innerHTML=[...new Set(db.map(r=>r.nome))].map(n=>`<option value="${n}">`).join('');
+}
 
-  // Limites de vagas
-  document.getElementById('configBtn').addEventListener('click', ()=>{
-    document.getElementById('limiteManha').value = limites.manha;
-    document.getElementById('limiteNoite').value = limites.noite;
-    document.getElementById('configModal').classList.add('active');
-  });
-  document.getElementById('closeConfigModal').addEventListener('click', ()=> document.getElementById('configModal').classList.remove('active'));
-  document.getElementById('salvarConfig').addEventListener('click', ()=>{
-    limites = { manha: +document.getElementById('limiteManha').value, noite: +document.getElementById('limiteNoite').value };
-    set(configRef, limites);
-    document.getElementById('configModal').classList.remove('active');
-    atualizarInterface();
-  });
+// Tema e som
+document.getElementById('soundToggle').onclick=function(){
+  sound=!sound;
+  this.querySelector('.material-icons').textContent=sound?'volume_up':'volume_off';
+};
+document.getElementById('themeToggle').onclick=()=>{
+  document.body.classList.toggle('light');
+  document.getElementById('themeIcon').textContent=document.body.classList.contains('light')?'light_mode':'dark_mode';
+  localStorage.setItem('tema',document.body.classList.contains('light')?'light':'dark');
+};
+if(localStorage.getItem('tema')==='light'){document.body.classList.add('light');document.getElementById('themeIcon').textContent='light_mode'}
 
-  // Funções de navegação
-  function setViews(main, discounts, weekly, downloads, history) {
-    document.getElementById('mainView').style.display = main ? 'block' : 'none';
-    document.getElementById('discountsView').style.display = discounts ? 'block' : 'none';
-    document.getElementById('weeklyView').style.display = weekly ? 'block' : 'none';
-    document.getElementById('downloadsView').style.display = downloads ? 'block' : 'none';
-    document.getElementById('historyView').style.display = history ? 'block' : 'none';
-    document.getElementById('backBtn').style.display = main ? 'none' : 'inline-block';
-    document.getElementById('historyBtn').style.display = history ? 'none' : 'inline-block';
-  }
-
-  document.getElementById('discountsBtn').addEventListener('click', ()=> setViews(false, true, false, false, false));
-  document.getElementById('weeklyBtn').addEventListener('click', ()=> {
-    setViews(false, false, true, false, false);
-    renderWeekSelector();
-  });
-  document.getElementById('downloadBtn').addEventListener('click', ()=> {
-    setViews(false, false, false, true, false);
-    selectedDayDownload = null;
-    renderDownloadTabs();
-  });
-  document.getElementById('historyBtn').addEventListener('click', ()=> {
-    setViews(false, false, false, false, true);
-    renderHistorico();
-  });
-  document.getElementById('backBtn').addEventListener('click', ()=> setViews(true, false, false, false, false));
-
-  // Descontos diários
-  function renderDiscounts() {
-    const presentes = getInscricoesDoDia().filter(r => r.status === 'presente');
-    const c = document.getElementById('discountsList');
-    if(!presentes.length) { c.innerHTML='<div class="empty">Nenhum desconto hoje</div>'; return; }
-    c.innerHTML = `<table class="discount-table"><tr><th>Nome</th><th>Turno</th><th>Chegada</th><th>Desconto</th></tr>
-      ${presentes.map(r => `<tr><td>${r.nome}</td><td>${r.turno}</td><td>${formatDisplay(r.dataPresenca)}</td><td>R$ ${calcularDesconto(r).toFixed(2)}</td></tr>`).join('')}</table>`;
-  }
-
-  // Fechamento semanal
-  function renderWeekSelector() {
-    const quintas = getQuintasDisponiveis();
-    if (!quintas.length) return;
-    const hoje = nowBrasilia();
-    let q = quintas[0];
-    for (const d of quintas) { if (d <= hoje) q = d; }
-    document.getElementById('weekStartDate').value = q.toISOString().split('T')[0];
-    const fim = new Date(q); fim.setDate(fim.getDate() + 7);
-    document.getElementById('weekEndDate').value = fim.toISOString().split('T')[0];
-    loadWeekData();
-  }
-  function getQuintasDisponiveis() {
-    const dates = db.map(r => new Date(r.dataPresenca || r.dataInscricao));
-    if (!dates.length) return [new Date()];
-    const min = new Date(Math.min(...dates));
-    const max = new Date(Math.max(...dates));
-    const quintas = [];
-    const d = new Date(min);
-    d.setDate(d.getDate() - ((d.getDay() + 3) % 7));
-    while (d <= max) {
-      quintas.push(new Date(d));
-      d.setDate(d.getDate() + 7);
-    }
-    return quintas.length ? quintas : [new Date()];
-  }
-
-  function loadWeekData() {
-    const inicio = new Date(document.getElementById('weekStartDate').value + 'T00:00:00-03:00');
-    const fim = new Date(document.getElementById('weekEndDate').value + 'T00:00:00-03:00');
-    document.getElementById('periodoLabel').textContent = `${inicio.toLocaleDateString('pt-BR')} até ${fim.toLocaleDateString('pt-BR')}`;
-    const registros = db.filter(r => r.status === 'presente' && new Date(r.dataPresenca) >= inicio && new Date(r.dataPresenca) < fim);
-    const mapa = new Map();
-    registros.forEach(r => {
-      const chave = `${r.nome}|${r.turno}`;
-      if (!mapa.has(chave)) mapa.set(chave, { nome: r.nome, turno: r.turno, total: 0 });
-      mapa.get(chave).total += calcularDesconto(r);
-    });
-    weeklyData = Array.from(mapa.values()).sort((a,b)=> a.nome.localeCompare(b.nome));
-    const c = document.getElementById('weeklyContent');
-    if(!weeklyData.length) { c.innerHTML='<div class="empty">Nenhum desconto no período.</div>'; return; }
-    c.innerHTML = `<table class="weekly-table"><tr><th>Nome</th><th>Turno</th><th>Desconto Total</th></tr>
-      ${weeklyData.map(d => `<tr><td>${d.nome}</td><td>${d.turno}</td><td>R$ ${d.total.toFixed(2)}</td></tr>`).join('')}</table>`;
-  }
-  document.getElementById('loadWeekBtn').addEventListener('click', loadWeekData);
-  document.getElementById('weekStartDate').addEventListener('change', loadWeekData);
-
-  function exportarSemanal(arr, formato) {
-    if(!arr.length) return alert('Nenhum dado.');
-    if(formato==='excel') {
-      const dados = arr.map(d=>({ Nome: d.nome, Turno: d.turno, 'Desconto Total': d.total.toFixed(2) }));
-      const ws = XLSX.utils.json_to_sheet(dados);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Fechamento');
-      XLSX.writeFile(wb, 'fechamento.xlsx');
-    } else if(formato==='pdf') {
-      const { jsPDF } = window.jspdf; const doc = new jsPDF();
-      doc.autoTable({ head: [['Nome','Turno','Desconto Total']], body: arr.map(d=>[d.nome, d.turno, `R$ ${d.total.toFixed(2)}`]) });
-      doc.save('fechamento.pdf');
-    } else if(formato==='txt') {
-      let txt = 'Fechamento\n\n'; arr.forEach(d=> txt += `${d.nome} (${d.turno}) - R$ ${d.total.toFixed(2)}\n`);
-      const blob = new Blob([txt],{type:'text/plain'}); const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download = 'fechamento.txt'; a.click();
-    }
-  }
-
-  document.getElementById('weeklyExcel').addEventListener('click', ()=> exportarSemanal(weeklyData, 'excel'));
-  document.getElementById('weeklyPdf').addEventListener('click', ()=> exportarSemanal(weeklyData, 'pdf'));
-  document.getElementById('weeklyTxt').addEventListener('click', ()=> exportarSemanal(weeklyData, 'txt'));
-
-  // Downloads diários
-  function renderDownloadTabs() {
-    const diasUnicos = [...new Set(db.map(r => new Date(r.dataInscricao || r.dataHora).toLocaleDateString('pt-BR', {timeZone:'America/Sao_Paulo'})))].sort((a,b) => {
-      const [da,ma,aa]=a.split('/'); const [db,mb,ab]=b.split('/');
-      return new Date(aa,ma-1,da) < new Date(ab,mb-1,db) ? 1 : -1;
-    });
-    const tabs = document.getElementById('downloadDateTabs');
-    tabs.innerHTML = diasUnicos.map(d => `<span class="date-tab" data-dia="${d}">${d}</span>`).join('');
-    if (!selectedDayDownload && diasUnicos.length) selectedDayDownload = diasUnicos[0];
-    tabs.querySelectorAll('.date-tab').forEach(t => t.classList.toggle('active', t.dataset.dia === selectedDayDownload));
-    document.getElementById('downloadInfo').textContent = selectedDayDownload ? `Dia selecionado: ${selectedDayDownload}` : '';
-  }
-
-  document.getElementById('downloadDateTabs').addEventListener('click', e => {
-    if (e.target.classList.contains('date-tab')) {
-      selectedDayDownload = e.target.dataset.dia;
-      renderDownloadTabs();
-    }
-  });
-
-  function getRegistrosDoDia(dia) {
-    return db.filter(r => {
-      const d = new Date(r.dataInscricao || r.dataHora);
-      return d.toLocaleDateString('pt-BR', {timeZone:'America/Sao_Paulo'}) === dia && r.status !== 'removido';
-    });
-  }
-
-  function exportar(arr, formato) {
-    if (!arr.length) return alert('Nenhum registro.');
-    const dados = arr.map(r => ({
-      Nome: r.nome, Turno: r.turno,
-      Status: r.status==='presente'?'Chegou':r.status==='ausente'?'Não chegou':r.status==='desistiu'?'Desistiu':'Inscrito',
-      'Data Inscrição': formatDisplay(r.dataInscricao).split(' ')[0],
-      'Hora Chegada': r.dataPresenca ? formatDisplay(r.dataPresenca).split(' ')[1] : '-',
-      Desconto: r.status==='presente' ? calcularDesconto(r).toFixed(2) : '0.00'
-    }));
-    if (formato==='excel') {
-      const ws = XLSX.utils.json_to_sheet(dados);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Presença');
-      XLSX.writeFile(wb, 'presenca.xlsx');
-    } else if (formato==='pdf') {
-      const { jsPDF } = window.jspdf; const doc = new jsPDF();
-      doc.autoTable({ head: [['Nome','Turno','Status','Data','Chegada','Desconto']], body: dados.map(d=>[d.Nome, d.Turno, d.Status, d['Data Inscrição'], d['Hora Chegada'], d.Desconto]) });
-      doc.save('presenca.pdf');
-    } else if (formato==='txt') {
-      let txt = 'Lista de Presença\n\n';
-      arr.forEach((r,i) => {
-        const st = r.status==='presente'?'✅':r.status==='ausente'?'❌':r.status==='desistiu'?'🚫':'⏳';
-        txt += `${i+1} ${r.nome} ${st}`;
-        if (r.status==='presente') { txt += ` ${formatDisplay(r.dataPresenca).split(' ')[1]}`; const d=calcularDesconto(r); if(d>0) txt += ` (R$ ${d.toFixed(2)})`; }
-        txt += '\n';
-      });
-      const blob = new Blob([txt],{type:'text/plain'});
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'lista.txt'; a.click();
-    }
-  }
-
-  document.getElementById('downloadExcel').addEventListener('click', ()=> exportar(getRegistrosDoDia(selectedDayDownload), 'excel'));
-  document.getElementById('downloadPdf').addEventListener('click', ()=> exportar(getRegistrosDoDia(selectedDayDownload), 'pdf'));
-  document.getElementById('downloadTxt').addEventListener('click', ()=> exportar(getRegistrosDoDia(selectedDayDownload), 'txt'));
-
-  // Histórico
-  function renderHistorico(diaSelecionado = null) {
-    const diasUnicos = [...new Set(db.map(r => new Date(r.dataInscricao || r.dataHora).toLocaleDateString('pt-BR', {timeZone:'America/Sao_Paulo'})))].sort((a,b) => {
-      const [da,ma,aa]=a.split('/'); const [db,mb,ab]=b.split('/');
-      return new Date(aa,ma-1,da) < new Date(ab,mb-1,db) ? 1 : -1;
-    });
-    const tabs = document.getElementById('dateTabs');
-    tabs.innerHTML = diasUnicos.map(d => `<span class="date-tab" data-dia="${d}">${d}</span>`).join('');
-    if (!diaSelecionado && diasUnicos.length) diaSelecionado = diasUnicos[0];
-    selectedDayHistory = diaSelecionado;
-    tabs.querySelectorAll('.date-tab').forEach(t => t.classList.toggle('active', t.dataset.dia === selectedDayHistory));
-    const filtrados = selectedDayHistory ? db.filter(r => {
-      const d = new Date(r.dataInscricao || r.dataHora);
-      return d.toLocaleDateString('pt-BR', {timeZone:'America/Sao_Paulo'}) === selectedDayHistory;
-    }) : db;
-    const list = document.getElementById('historyDayList');
-    list.innerHTML = filtrados.length ? filtrados.map(r => {
-      let stIcon = r.status==='presente'?'✅':r.status==='ausente'?'❌':r.status==='desistiu'?'🚫':r.status==='removido'?'🗑️':'⏳';
-      const desc = r.status==='presente' ? calcularDesconto(r) : 0;
-      return `<div class="card">
-        <div class="info">
-          <span class="material-icons">${r.status==='presente'?'check_circle':r.status==='ausente'?'cancel':'motorcycle'}</span>
-          <div>
-            <div class="name">${r.nome} ${stIcon}</div>
-            <div class="datetime">Insc: ${formatDisplay(r.dataInscricao)}</div>
-            ${r.status==='presente'?`<div class="datetime">Chegada: ${formatDisplay(r.dataPresenca)}</div>`:''}
-            ${desc>0?`<div class="discount">Desconto R$ ${desc.toFixed(2)}</div>`:''}
-          </div>
-        </div>
-      </div>`;
-    }).join('') : '<div class="empty">Nenhum registro</div>';
-  }
-  document.getElementById('dateTabs').addEventListener('click', e => {
-    if (e.target.classList.contains('date-tab')) renderHistorico(e.target.dataset.dia);
-  });
-
-  function updateAutocomplete() {
-    document.getElementById('nomeList').innerHTML = [...new Set(db.map(r => r.nome))].map(n => `<option value="${n}">`).join('');
-  }
-
-  // Som, tema e splash
-  document.getElementById('soundToggle').addEventListener('click', function() {
-    soundEnabled = !soundEnabled;
-    this.querySelector('.material-icons').textContent = soundEnabled ? 'volume_up' : 'volume_off';
-  });
-  document.getElementById('themeToggle').addEventListener('click', ()=>{
-    document.body.classList.toggle('light');
-    document.getElementById('themeIcon').textContent = document.body.classList.contains('light') ? 'light_mode' : 'dark_mode';
-    localStorage.setItem('tema', document.body.classList.contains('light')?'light':'dark');
-  });
-  if(localStorage.getItem('tema')==='light') { document.body.classList.add('light'); document.getElementById('themeIcon').textContent='light_mode'; }
-
-  const msgs = ["Iniciando protocolo...","Descriptografando módulo...","Bypass ativado...","Conectando ao servidor...","Carregando dados..."];
-  let idx = 0;
-  setInterval(() => { document.getElementById('splashMsg').textContent = msgs[(idx++)%msgs.length]; }, 800);
-  setTimeout(() => {
-    document.getElementById('splash').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    atualizarInterface();
-  }, 4000);
+// Splash
+const msgs=["Iniciando protocolo...","Descriptografando módulo...","Bypass ativado...","Conectando ao servidor...","Carregando dados..."];
+let idx=0;
+setInterval(()=>{document.getElementById('splashMsg').textContent=msgs[(idx++)%msgs.length]},800);
+setTimeout(()=>{
+  document.getElementById('splash').style.display='none';
+  document.getElementById('app').style.display='block';
+  atualizarInterface();
+},4000);
 </script>
 </body>
 </html>
