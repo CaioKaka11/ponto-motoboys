@@ -255,11 +255,11 @@ onValue(presenceRef,snap=>{
   document.getElementById('presence').innerHTML=`<div class="presence-dot"></div> ${Object.keys(d).length} ativo(s)`;
 });
 
-// Configs
+// Configs iniciais (usando os valores padrão com minuto)
 let limites={manha:16,noite:40};
 let discountConfig={
-  manha:{horaInicio:11,toleranciaMin:0,intervaloMin:15,valorInicial:15,valorIntervalo:2.5,maxDesconto:30},
-  noite:{horaInicio:17,toleranciaMin:14,intervaloMin:15,valorInicial:0,valorIntervalo:2.5,maxDesconto:30}
+  manha:{horaInicio:11,minutoInicio:1,intervaloMin:15,valorInicial:15,valorIntervalo:2.5,maxDesconto:30},
+  noite:{horaInicio:17,minutoInicio:15,intervaloMin:15,valorInicial:0,valorIntervalo:2.5,maxDesconto:30}
 };
 onValue(configRef,snap=>{if(snap.exists()){const d=snap.val();limites={manha:d.manha??16,noite:d.noite??40}}atualizarInterface()});
 onValue(discountConfigRef,snap=>{if(snap.exists())discountConfig=snap.val();atualizarInterface()});
@@ -283,6 +283,7 @@ onValue(registrosRef,snap=>{
 function atualizarInterface(){
   renderHoje();
   renderSummary();
+  // Garante que a aba de descontos seja atualizada se estiver visível
   if(document.getElementById('discountsView').style.display==='block')renderDiscounts();
   if(document.getElementById('historyView').style.display==='block')renderHist(selectedDayHistory);
   if(document.getElementById('downloadsView').style.display==='block')renderDownTabs();
@@ -301,12 +302,16 @@ function calcDesc(r){
   const cfg=discountConfig[r.turno];
   const d=new Date(r.dataPresenca);
   const chegada=d.getHours()*60+d.getMinutes();
-  const inicio=cfg.horaInicio*60+(cfg.toleranciaMin||0);
+  const inicio=cfg.horaInicio*60+cfg.minutoInicio;
   if(chegada<=inicio)return 0;
-  const atraso=chegada-inicio;
-  const blocos=Math.ceil(atraso/cfg.intervaloMin);
-  let v=(cfg.valorInicial||0)+blocos*cfg.valorIntervalo;
-  return Math.min(v,cfg.maxDesconto);
+  // Manhã: valor fixo até 11:14, depois adiciona a cada 15 min
+  const limitePrimeiraFaixa=inicio+13; // 11:01 + 13 min = 11:14
+  if(chegada<=limitePrimeiraFaixa)return Math.min(cfg.valorInicial,cfg.maxDesconto);
+  // Após a primeira faixa, calcula os blocos a partir de inicio+14 (11:15)
+  const minutosAposFaixa=chegada-(inicio+14);
+  const blocos=Math.ceil(minutosAposFaixa/cfg.intervaloMin);
+  let valor=cfg.valorInicial+blocos*cfg.valorIntervalo;
+  return Math.min(valor,cfg.maxDesconto);
 }
 
 // Som
@@ -429,7 +434,8 @@ function renderHoje(){
     if(r.status==='presente'){
       icone='check_circle';classe='presente';
       extra=`<div>${fmt(r.dataPresenca)}</div>`;
-      if(calcDesc(r)>0)extra+=`<div style="color:var(--warning)">Desconto R$ ${calcDesc(r).toFixed(2)}</div>`;
+      const desc=calcDesc(r);
+      if(desc>0)extra+=`<div style="color:var(--warning)">Desconto R$ ${desc.toFixed(2)}</div>`;
     }else if(r.status==='ausente'){icone='cancel';classe='ausente';extra='<div>Não compareceu</div>'}
     else if(r.status==='desistiu'){icone='remove_circle';classe='desistiu';extra='<div>Desistiu</div>'}
     else extra='<div>Aguardando</div>';
@@ -512,7 +518,7 @@ function renderDiscounts(){
     ${list.map(r=>`<tr><td>${r.nome}</td><td>${r.turno}</td><td>${fmt(r.dataPresenca)}</td><td>R$ ${calcDesc(r).toFixed(2)}</td></tr>`).join('')}</table>`;
 }
 
-// Fechamento semanal
+// Fechamento semanal (mantido)
 function getQuintas(){
   const dates=db.map(r=>new Date(r.dataPresenca||r.dataInscricao));
   if(!dates.length)return[new Date()];
@@ -618,7 +624,7 @@ document.getElementById('downloadExcel').onclick=()=>exportar(getRegDia(selected
 document.getElementById('downloadPdf').onclick=()=>exportar(getRegDia(selectedDayDownload),'pdf');
 document.getElementById('downloadTxt').onclick=()=>exportar(getRegDia(selectedDayDownload),'txt');
 
-// Histórico (sem excluídos!)
+// Histórico (sem excluídos)
 function renderHist(diaSel=null){
   const dias=[...new Set(db.filter(r=>r.status!=='removido').map(r=>new Date(r.dataInscricao||r.dataHora).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})))].sort((a,b)=>{
     const[da,ma,aa]=a.split('/');const[db,mb,ab]=b.split('/');return new Date(aa,ma-1,da)<new Date(ab,mb-1,db)?1:-1;
@@ -657,31 +663,45 @@ document.getElementById('downloadBtn').onclick=()=>{setViews(false,false,false,t
 document.getElementById('historyBtn').onclick=()=>{setViews(false,false,false,false,true);renderHist()};
 document.getElementById('backBtn').onclick=()=>setViews(true,false,false,false,false);
 
-// Config descontos
+// Config descontos (com time)
 document.getElementById('configDiscountsBtn').onclick=()=>{
   const m=discountConfig.manha,n=discountConfig.noite;
+  const toTime=(h,m)=>`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
   document.getElementById('discountConfigContent').innerHTML=`
     <h3>Manhã</h3>
-    <div class="config-row"><label>Hora início</label><input id="mH" value="${m.horaInicio}" type="number"></div>
-    <div class="config-row"><label>Tolerância (min)</label><input id="mT" value="${m.toleranciaMin}" type="number"></div>
+    <div class="config-row"><label>Horário início</label><input id="mHora" type="time" value="${toTime(m.horaInicio,m.minutoInicio)}"></div>
     <div class="config-row"><label>Intervalo (min)</label><input id="mI" value="${m.intervaloMin}" type="number"></div>
     <div class="config-row"><label>Valor inicial (R$)</label><input id="mVI" value="${m.valorInicial}" type="number" step="0.01"></div>
     <div class="config-row"><label>Valor p/ intervalo (R$)</label><input id="mVI2" value="${m.valorIntervalo}" type="number" step="0.01"></div>
     <div class="config-row"><label>Máximo desconto (R$)</label><input id="mMax" value="${m.maxDesconto}" type="number" step="0.01"></div>
     <hr><h3>Noite</h3>
-    <div class="config-row"><label>Hora início</label><input id="nH" value="${n.horaInicio}" type="number"></div>
-    <div class="config-row"><label>Tolerância (min)</label><input id="nT" value="${n.toleranciaMin}" type="number"></div>
+    <div class="config-row"><label>Horário início</label><input id="nHora" type="time" value="${toTime(n.horaInicio,n.minutoInicio)}"></div>
     <div class="config-row"><label>Intervalo (min)</label><input id="nI" value="${n.intervaloMin}" type="number"></div>
     <div class="config-row"><label>Valor inicial (R$)</label><input id="nVI" value="${n.valorInicial}" type="number" step="0.01"></div>
     <div class="config-row"><label>Valor p/ intervalo (R$)</label><input id="nVI2" value="${n.valorIntervalo}" type="number" step="0.01"></div>
-    <div class="config-row"><label>Máximo desconto (R$)</label><input id="nMax" value="${n.maxDesconto}" type="number" step="0.01"></div>`;
+    <div class="config-row"><label>Máximo desconto (R$)</label><input id="nMax" value="${n.maxDesconto}" type="number" step="0.01"></div>
+  `;
   document.getElementById('discountConfigModal').classList.add('active');
 };
 document.getElementById('closeDiscountConfigModal').onclick=()=>document.getElementById('discountConfigModal').classList.remove('active');
 document.getElementById('saveDiscountConfig').onclick=()=>{
+  const parseTime=(id)=>{const v=document.getElementById(id).value.split(':');return{ hora:parseInt(v[0]),minuto:parseInt(v[1])}};
+  const mh=parseTime('mHora'),nh=parseTime('nHora');
   discountConfig={
-    manha:{horaInicio:+document.getElementById('mH').value,toleranciaMin:+document.getElementById('mT').value,intervaloMin:+document.getElementById('mI').value,valorInicial:+document.getElementById('mVI').value,valorIntervalo:+document.getElementById('mVI2').value,maxDesconto:+document.getElementById('mMax').value},
-    noite:{horaInicio:+document.getElementById('nH').value,toleranciaMin:+document.getElementById('nT').value,intervaloMin:+document.getElementById('nI').value,valorInicial:+document.getElementById('nVI').value,valorIntervalo:+document.getElementById('nVI2').value,maxDesconto:+document.getElementById('nMax').value}
+    manha:{
+      horaInicio:mh.hora,minutoInicio:mh.minuto,
+      intervaloMin:+document.getElementById('mI').value,
+      valorInicial:+document.getElementById('mVI').value,
+      valorIntervalo:+document.getElementById('mVI2').value,
+      maxDesconto:+document.getElementById('mMax').value
+    },
+    noite:{
+      horaInicio:nh.hora,minutoInicio:nh.minuto,
+      intervaloMin:+document.getElementById('nI').value,
+      valorInicial:+document.getElementById('nVI').value,
+      valorIntervalo:+document.getElementById('nVI2').value,
+      maxDesconto:+document.getElementById('nMax').value
+    }
   };
   set(discountConfigRef,discountConfig);
   document.getElementById('discountConfigModal').classList.remove('active');
@@ -719,7 +739,7 @@ document.getElementById('themeToggle').onclick=()=>{
 };
 if(localStorage.getItem('tema')==='light'){document.body.classList.add('light');document.getElementById('themeIcon').textContent='light_mode'}
 
-// Splash (FINAL CORRETO)
+// Splash
 const msgs=["Iniciando protocolo...","Descriptografando módulo...","Bypass ativado...","Conectando ao servidor...","Carregando dados..."];
 let idx=0;
 setInterval(()=>{document.getElementById('splashMsg').textContent=msgs[(idx++)%msgs.length]},800);
