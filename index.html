@@ -95,6 +95,8 @@
     .date-tab{background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:13px;cursor:pointer;transition:0.2s}
     .date-tab.active{background:var(--teal);color:#000}
     .empty{text-align:center;padding:40px;color:var(--text2)}
+    .download-options{display:flex;gap:12px;margin-top:20px}
+    .download-options .btn{flex:1;min-width:100px;justify-content:center;font-size:14px}
   </style>
 </head>
 <body>
@@ -547,16 +549,16 @@ function loadWeek(){
 }
 document.getElementById('loadWeekBtn').onclick=loadWeek;
 document.getElementById('weekStartDate').onchange=loadWeek;
-function expSemanal(arr,fmt){
+function expSemanal(arr,formato){
   if(!arr.length)return alert('Nenhum dado.');
-  if(fmt==='excel'){
+  if(formato==='excel'){
     const ws=XLSX.utils.json_to_sheet(arr.map(d=>({Nome:d.nome,Turno:d.turno,'Desconto Total':d.total.toFixed(2)})));
     const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Fechamento');XLSX.writeFile(wb,'fechamento.xlsx');
-  }else if(fmt==='pdf'){
+  }else if(formato==='pdf'){
     const{jsPDF}=window.jspdf;const doc=new jsPDF();
     doc.autoTable({head:[['Nome','Turno','Desconto Total']],body:arr.map(d=>[d.nome,d.turno,`R$ ${d.total.toFixed(2)}`])});
     doc.save('fechamento.pdf');
-  }else if(fmt==='txt'){
+  }else if(formato==='txt'){
     let t='Fechamento\n\n';arr.forEach(d=>t+=`${d.nome} (${d.turno}) - R$ ${d.total.toFixed(2)}\n`);
     const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);a.download='fechamento.txt';a.click();
@@ -586,7 +588,7 @@ function getRegDia(dia){
     return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})===dia&&r.status!=='removido';
   });
 }
-function exportar(arr,fmt){
+function exportar(arr,formato){
   if(!arr.length)return alert('Nenhum registro.');
   const dados=arr.map(r=>({
     Nome:r.nome,Turno:r.turno,
@@ -595,13 +597,13 @@ function exportar(arr,fmt){
     'Hora Chegada':r.dataPresenca?fmt(r.dataPresenca).split(' ')[1]:'-',
     Desconto:r.status==='presente'?calcDesc(r).toFixed(2):'0.00'
   }));
-  if(fmt==='excel'){
+  if(formato==='excel'){
     const ws=XLSX.utils.json_to_sheet(dados),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Presença');XLSX.writeFile(wb,'presenca.xlsx');
-  }else if(fmt==='pdf'){
+  }else if(formato==='pdf'){
     const{jsPDF}=window.jspdf;const doc=new jsPDF();
     doc.autoTable({head:[['Nome','Turno','Status','Data','Chegada','Desconto']],body:dados.map(d=>[d.Nome,d.Turno,d.Status,d['Data Inscrição'],d['Hora Chegada'],d.Desconto])});
     doc.save('presenca.pdf');
-  }else if(fmt==='txt'){
+  }else if(formato==='txt'){
     let t='Lista de Presença\n\n';
     arr.forEach((r,i)=>{
       const st=r.status==='presente'?'✅':r.status==='ausente'?'❌':r.status==='desistiu'?'🚫':'⏳';
@@ -717,7 +719,7 @@ document.getElementById('themeToggle').onclick=()=>{
 };
 if(localStorage.getItem('tema')==='light'){document.body.classList.add('light');document.getElementById('themeIcon').textContent='light_mode'}
 
-// Splash
+// Splash (FINAL CORRETO)
 const msgs=["Iniciando protocolo...","Descriptografando módulo...","Bypass ativado...","Conectando ao servidor...","Carregando dados..."];
 let idx=0;
 setInterval(()=>{document.getElementById('splashMsg').textContent=msgs[(idx++)%msgs.length]},800);
