@@ -113,7 +113,6 @@
     <div class="header-actions">
       <button id="soundToggle" title="Som"><span class="material-icons">volume_up</span></button>
       <button id="themeToggle" title="Tema"><span class="material-icons" id="themeIcon">dark_mode</span></button>
-      <button id="configDiscountsBtn" title="Configurar Descontos"><span class="material-icons">tune</span></button>
       <button id="configBtn" title="Limite Vagas"><span class="material-icons">settings</span></button>
       <button id="discountsBtn" title="Descontos do dia"><span class="material-icons">attach_money</span></button>
       <button id="weeklyBtn" title="Fechamento"><span class="material-icons">account_balance_wallet</span></button>
@@ -128,14 +127,6 @@
       <span class="close-modal" id="closeDeviceModal">&times;</span>
       <h2>Dispositivos Conectados</h2>
       <div id="deviceList" class="device-list"></div>
-    </div>
-  </div>
-  <div id="discountConfigModal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal" id="closeDiscountConfigModal">&times;</span>
-      <h2>Configurar Descontos</h2>
-      <div id="discountConfigContent"></div>
-      <button class="btn" id="saveDiscountConfig" style="margin-top:12px;">Salvar</button>
     </div>
   </div>
   <div id="configModal" class="modal">
@@ -199,6 +190,14 @@
   <div id="downloadsView" class="container" style="display:none">
     <div class="list-title">Download Relatórios</div>
     <div class="date-tabs" id="downloadDateTabs"></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+      <label style="font-size:14px;">Turno:</label>
+      <select id="downloadTurnoSelect" style="padding:6px 10px;background:var(--glass);border:1px solid var(--border);border-radius:8px;color:var(--text);">
+        <option value="todos">Ambos</option>
+        <option value="manha">Manhã</option>
+        <option value="noite">Noite</option>
+      </select>
+    </div>
     <div class="download-options"><button class="btn" id="downloadExcel">Excel</button><button class="btn" id="downloadPdf">PDF</button><button class="btn" id="downloadTxt">TXT</button></div>
     <p id="downloadInfo" style="margin-top:8px;color:var(--text2);"></p>
   </div>
@@ -228,7 +227,6 @@ const database = getDatabase(app);
 const registrosRef = ref(database, 'registros');
 const presenceRef = ref(database, 'presence');
 const configRef = ref(database, 'config');
-const discountConfigRef = ref(database, 'discountConfig');
 
 // Presença
 const userId = Date.now().toString(36)+Math.random().toString(36).substr(2);
@@ -255,16 +253,21 @@ onValue(presenceRef,snap=>{
   document.getElementById('presence').innerHTML=`<div class="presence-dot"></div> ${Object.keys(d).length} ativo(s)`;
 });
 
-// Configs iniciais (usando os valores padrão com minuto)
 let limites={manha:16,noite:40};
-let discountConfig={
-  manha:{horaInicio:11,minutoInicio:1,intervaloMin:15,valorInicial:15,valorIntervalo:2.5,maxDesconto:30},
-  noite:{horaInicio:17,minutoInicio:15,intervaloMin:15,valorInicial:0,valorIntervalo:2.5,maxDesconto:30}
+// Descontos fixos conforme a imagem
+const discountConfig = {
+  manha:[
+    {time:"11:01",value:15},{time:"11:15",value:20},{time:"11:30",value:25},
+    {time:"11:45",value:30},{time:"12:00",value:35}
+  ],
+  noite:[
+    {time:"17:15",value:2.5},{time:"17:30",value:5},{time:"17:45",value:7.5},
+    {time:"18:00",value:10},{time:"18:15",value:15},{time:"18:30",value:20},
+    {time:"18:45",value:25},{time:"19:00",value:30}
+  ]
 };
 onValue(configRef,snap=>{if(snap.exists()){const d=snap.val();limites={manha:d.manha??16,noite:d.noite??40}}atualizarInterface()});
-onValue(discountConfigRef,snap=>{if(snap.exists())discountConfig=snap.val();atualizarInterface()});
 
-// Estado
 let turno='manha';
 let db=[];
 let ordem='naoChegouPrimeiro';
@@ -283,7 +286,6 @@ onValue(registrosRef,snap=>{
 function atualizarInterface(){
   renderHoje();
   renderSummary();
-  // Garante que a aba de descontos seja atualizada se estiver visível
   if(document.getElementById('discountsView').style.display==='block')renderDiscounts();
   if(document.getElementById('historyView').style.display==='block')renderHist(selectedDayHistory);
   if(document.getElementById('downloadsView').style.display==='block')renderDownTabs();
@@ -299,22 +301,25 @@ function getInscritos(){
 
 function calcDesc(r){
   if(!r.dataPresenca||r.status!=='presente')return 0;
-  const cfg=discountConfig[r.turno];
+  const lista=discountConfig[r.turno]||[];
+  if(!lista.length)return 0;
   const d=new Date(r.dataPresenca);
-  const chegada=d.getHours()*60+d.getMinutes();
-  const inicio=cfg.horaInicio*60+cfg.minutoInicio;
-  if(chegada<=inicio)return 0;
-  // Manhã: valor fixo até 11:14, depois adiciona a cada 15 min
-  const limitePrimeiraFaixa=inicio+13; // 11:01 + 13 min = 11:14
-  if(chegada<=limitePrimeiraFaixa)return Math.min(cfg.valorInicial,cfg.maxDesconto);
-  // Após a primeira faixa, calcula os blocos a partir de inicio+14 (11:15)
-  const minutosAposFaixa=chegada-(inicio+14);
-  const blocos=Math.ceil(minutosAposFaixa/cfg.intervaloMin);
-  let valor=cfg.valorInicial+blocos*cfg.valorIntervalo;
-  return Math.min(valor,cfg.maxDesconto);
+  const minsChegada=d.getHours()*60+d.getMinutes();
+  const ordenado=[...lista].sort((a,b)=>{
+    const [ah,am]=a.time.split(':').map(Number);
+    const [bh,bm]=b.time.split(':').map(Number);
+    return (ah*60+am)-(bh*60+bm);
+  });
+  let valor=0;
+  for(const item of ordenado){
+    const [h,m]=item.time.split(':').map(Number);
+    const minsItem=h*60+m;
+    if(minsItem<=minsChegada) valor=item.value;
+    else break;
+  }
+  return valor;
 }
 
-// Som
 let sound=true;
 const ctx=new(window.AudioContext||window.webkitAudioContext)();
 function tone(f,d,t='sine'){if(!sound)return;const o=ctx.createOscillator();o.type=t;o.frequency.value=f;o.connect(ctx.destination);o.start();o.stop(ctx.currentTime+d)}
@@ -574,7 +579,7 @@ document.getElementById('weeklyExcel').onclick=()=>expSemanal(weeklyData,'excel'
 document.getElementById('weeklyPdf').onclick=()=>expSemanal(weeklyData,'pdf');
 document.getElementById('weeklyTxt').onclick=()=>expSemanal(weeklyData,'txt');
 
-// Downloads diários
+// Downloads diários com filtro de turno
 function renderDownTabs(){
   const dias=[...new Set(db.map(r=>new Date(r.dataInscricao||r.dataHora).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})))].sort((a,b)=>{
     const[da,ma,aa]=a.split('/');const[db,mb,ab]=b.split('/');return new Date(aa,ma-1,da)<new Date(ab,mb-1,db)?1:-1;
@@ -588,10 +593,13 @@ function renderDownTabs(){
 document.getElementById('downloadDateTabs').onclick=e=>{
   if(e.target.classList.contains('date-tab')){selectedDayDownload=e.target.dataset.dia;renderDownTabs()}
 };
-function getRegDia(dia){
+function getRegDia(dia, turnoFiltro='todos'){
   return db.filter(r=>{
     const d=new Date(r.dataInscricao||r.dataHora);
-    return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})===dia&&r.status!=='removido';
+    const diaCorreto = d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})===dia;
+    const ativo = r.status!=='removido';
+    const turnoOk = turnoFiltro==='todos'?true:r.turno===turnoFiltro;
+    return diaCorreto && ativo && turnoOk;
   });
 }
 function exportar(arr,formato){
@@ -620,11 +628,17 @@ function exportar(arr,formato){
     const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lista.txt';a.click();
   }
 }
-document.getElementById('downloadExcel').onclick=()=>exportar(getRegDia(selectedDayDownload),'excel');
-document.getElementById('downloadPdf').onclick=()=>exportar(getRegDia(selectedDayDownload),'pdf');
-document.getElementById('downloadTxt').onclick=()=>exportar(getRegDia(selectedDayDownload),'txt');
 
-// Histórico (sem excluídos)
+function downloadDoDia(formato){
+  const turnoFiltro = document.getElementById('downloadTurnoSelect').value;
+  exportar(getRegDia(selectedDayDownload, turnoFiltro), formato);
+}
+
+document.getElementById('downloadExcel').onclick=()=>downloadDoDia('excel');
+document.getElementById('downloadPdf').onclick=()=>downloadDoDia('pdf');
+document.getElementById('downloadTxt').onclick=()=>downloadDoDia('txt');
+
+// Histórico
 function renderHist(diaSel=null){
   const dias=[...new Set(db.filter(r=>r.status!=='removido').map(r=>new Date(r.dataInscricao||r.dataHora).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})))].sort((a,b)=>{
     const[da,ma,aa]=a.split('/');const[db,mb,ab]=b.split('/');return new Date(aa,ma-1,da)<new Date(ab,mb-1,db)?1:-1;
@@ -662,51 +676,6 @@ document.getElementById('weeklyBtn').onclick=()=>{setViews(false,false,true,fals
 document.getElementById('downloadBtn').onclick=()=>{setViews(false,false,false,true,false);selectedDayDownload=null;renderDownTabs()};
 document.getElementById('historyBtn').onclick=()=>{setViews(false,false,false,false,true);renderHist()};
 document.getElementById('backBtn').onclick=()=>setViews(true,false,false,false,false);
-
-// Config descontos (com time)
-document.getElementById('configDiscountsBtn').onclick=()=>{
-  const m=discountConfig.manha,n=discountConfig.noite;
-  const toTime=(h,m)=>`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-  document.getElementById('discountConfigContent').innerHTML=`
-    <h3>Manhã</h3>
-    <div class="config-row"><label>Horário início</label><input id="mHora" type="time" value="${toTime(m.horaInicio,m.minutoInicio)}"></div>
-    <div class="config-row"><label>Intervalo (min)</label><input id="mI" value="${m.intervaloMin}" type="number"></div>
-    <div class="config-row"><label>Valor inicial (R$)</label><input id="mVI" value="${m.valorInicial}" type="number" step="0.01"></div>
-    <div class="config-row"><label>Valor p/ intervalo (R$)</label><input id="mVI2" value="${m.valorIntervalo}" type="number" step="0.01"></div>
-    <div class="config-row"><label>Máximo desconto (R$)</label><input id="mMax" value="${m.maxDesconto}" type="number" step="0.01"></div>
-    <hr><h3>Noite</h3>
-    <div class="config-row"><label>Horário início</label><input id="nHora" type="time" value="${toTime(n.horaInicio,n.minutoInicio)}"></div>
-    <div class="config-row"><label>Intervalo (min)</label><input id="nI" value="${n.intervaloMin}" type="number"></div>
-    <div class="config-row"><label>Valor inicial (R$)</label><input id="nVI" value="${n.valorInicial}" type="number" step="0.01"></div>
-    <div class="config-row"><label>Valor p/ intervalo (R$)</label><input id="nVI2" value="${n.valorIntervalo}" type="number" step="0.01"></div>
-    <div class="config-row"><label>Máximo desconto (R$)</label><input id="nMax" value="${n.maxDesconto}" type="number" step="0.01"></div>
-  `;
-  document.getElementById('discountConfigModal').classList.add('active');
-};
-document.getElementById('closeDiscountConfigModal').onclick=()=>document.getElementById('discountConfigModal').classList.remove('active');
-document.getElementById('saveDiscountConfig').onclick=()=>{
-  const parseTime=(id)=>{const v=document.getElementById(id).value.split(':');return{ hora:parseInt(v[0]),minuto:parseInt(v[1])}};
-  const mh=parseTime('mHora'),nh=parseTime('nHora');
-  discountConfig={
-    manha:{
-      horaInicio:mh.hora,minutoInicio:mh.minuto,
-      intervaloMin:+document.getElementById('mI').value,
-      valorInicial:+document.getElementById('mVI').value,
-      valorIntervalo:+document.getElementById('mVI2').value,
-      maxDesconto:+document.getElementById('mMax').value
-    },
-    noite:{
-      horaInicio:nh.hora,minutoInicio:nh.minuto,
-      intervaloMin:+document.getElementById('nI').value,
-      valorInicial:+document.getElementById('nVI').value,
-      valorIntervalo:+document.getElementById('nVI2').value,
-      maxDesconto:+document.getElementById('nMax').value
-    }
-  };
-  set(discountConfigRef,discountConfig);
-  document.getElementById('discountConfigModal').classList.remove('active');
-  atualizarInterface();
-};
 
 // Config vagas
 document.getElementById('configBtn').onclick=()=>{
