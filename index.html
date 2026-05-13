@@ -12,152 +12,216 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    :root{
-      --bg:#0a0a10;--card:rgba(20,20,28,0.85);--glass:rgba(255,255,255,0.04);
-      --border:rgba(255,255,255,0.08);--text:#f0f0f5;--text2:#a0a0b0;
-      --neon:#00ff88;--teal:#00d4ff;--danger:#ff4455;--warning:#ffb830;
-      --primary:#6c63ff;--gradient1:linear-gradient(135deg,#0d0d1a,#1a1a2e);
+    :root {
+      --bg: #0a0a0f;
+      --surface: rgba(22, 22, 30, 0.9);
+      --glass: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f0f0f5;
+      --text2: #9898a8;
+      --accent: #00e676;
+      --teal: #00bcd4;
+      --danger: #ff5252;
+      --warning: #ffab40;
     }
-    body.light{
-      --bg:#f2f5f9;--card:rgba(255,255,255,0.92);--glass:rgba(0,0,0,0.04);
-      --border:rgba(0,0,0,0.08);--text:#222;--text2:#555;
-      --neon:#009944;--teal:#0088aa;--danger:#cc2233;--warning:#cc8800
+    body.light {
+      --bg: #f5f7fa;
+      --surface: rgba(255, 255, 255, 0.95);
+      --glass: rgba(0, 0, 0, 0.03);
+      --border: rgba(0, 0, 0, 0.08);
+      --text: #1a1a2e;
+      --text2: #555;
+      --accent: #00c853;
+      --teal: #0097a7;
+      --danger: #d32f2f;
+      --warning: #f57c00;
     }
-    body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Roboto,sans-serif;min-height:100vh;transition:background 0.4s,color 0.4s;overflow-x:hidden}
-    @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes fadeInScale{from{opacity:0;transform:scale(0.92)}to{opacity:1;transform:scale(1)}}
-    @keyframes pulse{0%,100%{box-shadow:0 0 8px var(--neon)}50%{box-shadow:0 0 20px var(--neon)}}
-    @keyframes motoRun{0%{transform:translateX(-30px) rotate(-5deg)}50%{transform:translateX(10px) rotate(2deg)}100%{transform:translateX(0) rotate(0deg)}}
-    @keyframes fillBar{to{width:100%}}
-
-    #splash{
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      height:100vh;text-align:center;padding:20px;animation:fadeInScale 0.6s ease;
-      background:var(--gradient1, #0d0d1a);
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .splash-icon{
-      font-size:80px;color:var(--neon);margin-bottom:24px;
-      animation:motoRun 0.8s ease-out;
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 6px var(--accent); } 50% { box-shadow: 0 0 16px var(--accent); } }
+    @keyframes fillBar { to { width: 100%; } }
+
+    #splash {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100vh; text-align: center; background: linear-gradient(135deg, #0d0d1a, #1a1a2e);
     }
-    .splash-msg{font-size:18px;color:var(--neon);font-weight:600;letter-spacing:1.5px;min-height:48px}
-    .progress-bar{width:240px;height:6px;background:rgba(255,255,255,0.1);margin:28px auto;border-radius:10px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.2)}
-    .progress-fill{height:100%;width:0%;background:var(--neon);border-radius:10px;animation:fillBar 3.5s linear forwards}
+    .splash-icon { font-size: 72px; color: var(--accent); margin-bottom: 20px; animation: fadeIn 0.6s; }
+    .splash-msg { font-size: 16px; color: var(--accent); font-weight: 600; letter-spacing: 1px; min-height: 40px; }
+    .progress-bar { width: 220px; height: 5px; background: rgba(255,255,255,0.08); margin: 24px auto; border-radius: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 10px; animation: fillBar 3.5s linear forwards; }
 
-    #app{display:none;animation:fadeInUp 0.5s ease}
-    .header{
-      display:flex;align-items:center;justify-content:space-between;
-      padding:12px 20px;background:var(--card);border-bottom:1px solid var(--border);
-      backdrop-filter:blur(20px);position:sticky;top:0;z-index:50;
-      box-shadow:0 4px 12px rgba(0,0,0,0.15);flex-wrap:wrap;gap:8px;
+    #app { display: none; }
+
+    /* HEADER */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 18px; background: var(--surface); border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 50;
+      flex-wrap: wrap; gap: 8px;
     }
-    .header h1{font-size:20px;display:flex;align-items:center;gap:8px}
-    .header-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-    .header-actions button{
-      background:transparent;border:none;color:var(--text);font-size:22px;
-      cursor:pointer;padding:8px;border-radius:12px;transition:all 0.3s;
-      position:relative;display:flex;align-items:center;gap:4px;
+    .header h1 { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .header-actions { display: flex; gap: 4px; align-items: center; }
+    .header-actions button {
+      background: transparent; border: none; color: var(--text); font-size: 20px;
+      cursor: pointer; padding: 7px; border-radius: 10px; transition: 0.2s;
+      display: flex; align-items: center; justify-content: center;
     }
-    .header-actions button:hover{background:var(--glass);transform:scale(1.1)}
-    .presence-indicator{
-      display:flex;align-items:center;gap:6px;margin-left:8px;
-      background:var(--glass);padding:6px 14px;border-radius:20px;font-size:13px;
-      cursor:pointer;animation:pulse 2.5s infinite;font-weight:500;
+    .header-actions button:hover { background: var(--glass); }
+    .presence-indicator {
+      display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+      background: var(--glass); border-radius: 20px; font-size: 12px;
+      cursor: pointer; animation: pulse 2.5s infinite; font-weight: 500;
     }
-    .presence-dot{width:10px;height:10px;border-radius:50%;background:#0f0;box-shadow:0 0 10px #0f0}
+    .presence-dot { width: 8px; height: 8px; border-radius: 50%; background: #4caf50; }
 
-    .container{padding:20px;max-width:720px;margin:0 auto;animation:fadeInUp 0.4s ease}
-    .tab-bar{display:flex;background:var(--card);border-radius:16px;padding:6px;margin-bottom:24px;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
-    .tab{flex:1;text-align:center;padding:10px;border-radius:12px;font-weight:bold;cursor:pointer;transition:0.3s;font-size:15px;color:var(--text2)}
-    .tab.active{background:var(--neon);color:#000;box-shadow:0 4px 12px rgba(0,255,136,0.3)}
+    /* CONTAINER */
+    .container { padding: 16px; max-width: 700px; margin: 0 auto; animation: fadeUp 0.35s ease; }
 
-    .shift-info{background:var(--card);padding:14px 20px;border-radius:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
-    .input-row{display:flex;gap:10px;margin-bottom:20px}
-    .input-row select,.input-row input{flex:1;padding:14px;background:var(--glass);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:16px;outline:none;transition:0.3s}
-    .input-row select:focus,.input-row input:focus{border-color:var(--neon)}
-    .btn{background:var(--neon);color:#000;border:none;padding:14px 24px;border-radius:14px;font-weight:bold;font-size:15px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.3s;box-shadow:0 4px 12px rgba(0,255,136,0.25)}
-    .btn:hover{filter:brightness(1.1);transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,255,136,0.35)}
-    .btn.danger{background:var(--danger);box-shadow:0 4px 12px rgba(255,68,85,0.3)}
-    .btn.danger:hover{box-shadow:0 6px 18px rgba(255,68,85,0.4)}
-    .btn.small{padding:8px 16px;font-size:13px}
+    /* TABS */
+    .tab-bar { display: flex; background: var(--surface); border-radius: 14px; padding: 4px; margin-bottom: 18px; gap: 4px; }
+    .tab { flex: 1; text-align: center; padding: 10px; border-radius: 11px; font-weight: 600; cursor: pointer; transition: 0.25s; font-size: 14px; color: var(--text2); }
+    .tab.active { background: var(--accent); color: #000; }
 
-    .summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-bottom:24px}
-    .summary-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;transition:all 0.3s;backdrop-filter:blur(10px);animation:fadeInUp 0.4s ease}
-    .summary-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.25)}
-    .summary-card.active-filter{border-color:var(--neon);box-shadow:0 0 16px rgba(0,255,136,0.2)}
-    .summary-card .number{font-size:26px;font-weight:700}
-    .summary-card .label{font-size:11px;color:var(--text2);margin-top:4px}
-
-    .toolbar{display:flex;gap:10px;margin-bottom:20px;align-items:center}
-    .search-bar{flex:1;position:relative}
-    .search-bar input{width:100%;padding:12px 16px 12px 42px;background:var(--glass);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:15px;transition:0.3s}
-    .search-bar input:focus{border-color:var(--teal)}
-    .search-bar .material-icons{position:absolute;left:12px;top:14px;color:var(--text2);font-size:20px}
-    .order-btn{background:var(--glass);border:1px solid var(--border);border-radius:14px;color:var(--text);padding:12px 18px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:0.3s;font-weight:500}
-    .order-btn:hover{background:rgba(255,255,255,0.1)}
-    .order-dropdown{position:absolute;right:0;top:100%;margin-top:8px;background:var(--card);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(20px);z-index:30;display:none;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,0.4);overflow:hidden}
-    .order-dropdown.show{display:block;animation:fadeInScale 0.2s ease}
-    .order-dropdown div{padding:12px 20px;cursor:pointer;font-size:14px;transition:0.2s;color:var(--text)}
-    .order-dropdown div:hover{background:rgba(255,255,255,0.08)}
-    .order-dropdown div.active{color:var(--neon);font-weight:bold;background:rgba(0,255,136,0.1)}
-
-    .list-title{font-weight:bold;margin-bottom:10px;color:var(--teal);font-size:16px;display:flex;align-items:center;gap:8px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;transition:all 0.25s;backdrop-filter:blur(12px);animation:fadeInUp 0.3s ease}
-    .card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3);border-color:var(--teal)}
-    .card .info{display:flex;align-items:center;gap:12px;flex:1}
-    .card .name{font-weight:600;font-size:15px}
-    .card .name.presente{color:var(--neon)}
-    .card .name.ausente{color:var(--danger)}
-    .card .name.desistiu{color:var(--warning)}
-    .card .datetime,.card .discount{font-size:12px;color:var(--text2)}
-    .admin-actions{display:flex;gap:4px;flex-wrap:wrap}
-    .admin-actions button{background:transparent;border:1px solid var(--teal);color:var(--teal);padding:5px 12px;border-radius:10px;cursor:pointer;font-size:12px;transition:0.2s}
-    .admin-actions button:hover{background:rgba(0,212,255,0.15);transform:scale(1.05)}
-    .admin-actions button.remover{border-color:var(--danger);color:var(--danger)}
-    .admin-actions button.remover:hover{background:rgba(255,68,85,0.15)}
-
-    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(6px)}
-    .modal.active{display:flex;animation:fadeInScale 0.3s ease}
-    .modal-content{background:var(--card);padding:28px;border-radius:24px;border:1px solid var(--border);max-width:460px;width:92%;max-height:85vh;overflow-y:auto;box-shadow:0 16px 40px rgba(0,0,0,0.5);position:relative}
-    .close-modal{position:absolute;top:12px;right:18px;font-size:28px;cursor:pointer;color:var(--text2);transition:0.2s}
-    .close-modal:hover{color:var(--danger)}
-    .config-row{display:flex;gap:12px;margin-bottom:14px;align-items:center}
-    .config-row label{flex:1;font-weight:500}
-    .config-row input{width:90px;padding:8px;border-radius:10px;background:var(--glass);border:1px solid var(--border);color:var(--text);text-align:center}
-
-    /* Descontos Detalhados */
-    .detail-container{display:flex;flex-direction:column;gap:12px}
-    .filters-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-    .filters-row .periodo-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .filters-row .periodo-row input{width:140px;padding:10px;background:var(--glass);border:1px solid var(--border);border-radius:10px;color:var(--text)}
-    .filters-row .search-motoboy{flex:1;min-width:200px;padding:10px 14px;background:var(--glass);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px}
-    .download-buttons{display:flex;gap:10px;margin-bottom:16px;margin-top:8px}
-    .download-buttons .btn{flex:1;justify-content:center;padding:10px;font-size:14px}
-    .results-container{max-height:400px;overflow-y:auto;border-radius:12px;padding-right:4px}
-    .detail-card{
-      background:var(--card);border:1px solid var(--border);border-radius:12px;
-      padding:12px;margin-bottom:8px;transition:0.2s;
+    /* INFO ROW */
+    .shift-info { background: var(--surface); border-radius: 14px; padding: 12px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .input-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .input-row input {
+      flex: 1; padding: 12px 16px; background: var(--glass); border: 1px solid var(--border);
+      border-radius: 12px; color: var(--text); font-size: 15px; outline: none; transition: 0.2s;
     }
-    .detail-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.2)}
-    .detail-card .header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-    .detail-card .motoboy-name{font-weight:700}
-    .detail-card .total{font-weight:700;color:var(--warning)}
-    .detail-card .items{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-    .detail-card .item-tag{padding:3px 8px;border-radius:6px;font-size:11px;background:rgba(255,255,255,0.06);border:1px solid var(--border)}
-    .detail-card .item-tag.atraso{border-color:var(--danger);color:var(--danger)}
-    .detail-card .item-tag.extra{border-color:var(--teal);color:var(--teal)}
-    .detail-details{font-size:12px;color:var(--text2);margin-top:6px;max-height:120px;overflow-y:auto}
+    .input-row input:focus { border-color: var(--accent); }
 
-    .weekly-table{width:100%;border-collapse:collapse;margin-top:12px}
-    .weekly-table th{background:var(--glass);padding:10px;text-align:left;font-size:13px;color:var(--teal)}
-    .weekly-table td{padding:10px;border-bottom:1px solid var(--border)}
-    .date-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-    .date-tab{background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:13px;cursor:pointer;transition:0.2s;color:var(--text)}
-    .date-tab.active{background:var(--teal);color:#000;font-weight:bold}
-    .empty{text-align:center;padding:50px 20px;color:var(--text2);font-style:italic}
-    .device-list table{width:100%;border-collapse:collapse;margin-top:8px}
-    .device-list th,.device-list td{padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;font-size:13px}
-    .checkbox-col input{transform:scale(1.2);cursor:pointer;margin-right:10px}
+    /* BUTTONS */
+    .btn {
+      background: var(--accent); color: #000; border: none; padding: 12px 20px;
+      border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px; transition: 0.2s; white-space: nowrap;
+    }
+    .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn.danger { background: var(--danger); color: #fff; }
+    .btn.small { padding: 8px 14px; font-size: 12px; }
+
+    /* SUMMARY CARDS */
+    .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; margin-bottom: 18px; }
+    .summary-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 12px 6px; text-align: center; cursor: pointer; transition: 0.2s;
+    }
+    .summary-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .summary-card.active-filter { border-color: var(--accent); background: rgba(0,230,118,0.08); }
+    .summary-card .number { font-size: 22px; font-weight: 700; }
+    .summary-card .label { font-size: 10px; color: var(--text2); margin-top: 2px; }
+
+    /* TOOLBAR */
+    .toolbar { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; }
+    .search-bar { flex: 1; position: relative; }
+    .search-bar input {
+      width: 100%; padding: 10px 14px 10px 38px; background: var(--glass);
+      border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 14px;
+    }
+    .search-bar .material-icons { position: absolute; left: 10px; top: 12px; color: var(--text2); font-size: 18px; }
+    .order-btn {
+      background: var(--glass); border: 1px solid var(--border); border-radius: 12px;
+      color: var(--text); padding: 10px 16px; font-size: 13px; cursor: pointer;
+      display: flex; align-items: center; gap: 5px; transition: 0.2s; font-weight: 500;
+    }
+    .order-btn:hover { background: rgba(255,255,255,0.08); }
+    .order-dropdown {
+      position: absolute; right: 0; top: calc(100% + 6px); background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px; backdrop-filter: blur(20px);
+      z-index: 30; display: none; min-width: 210px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); overflow: hidden;
+    }
+    .order-dropdown.show { display: block; animation: fadeUp 0.15s ease; }
+    .order-dropdown div {
+      padding: 10px 16px; cursor: pointer; font-size: 13px; transition: 0.15s; color: var(--text);
+    }
+    .order-dropdown div:hover { background: rgba(255,255,255,0.06); }
+    .order-dropdown div.active { color: var(--accent); font-weight: 600; background: rgba(0,230,118,0.08); }
+
+    /* CARDS */
+    .list-title { font-weight: 600; margin-bottom: 8px; color: var(--teal); font-size: 15px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 12px; margin-bottom: 6px; display: flex; align-items: center;
+      justify-content: space-between; transition: 0.2s; animation: fadeUp 0.25s ease;
+    }
+    .card:hover { border-color: var(--teal); transform: translateY(-1px); }
+    .card .name { font-weight: 600; font-size: 14px; }
+    .card .name.presente { color: var(--accent); } .card .name.ausente { color: var(--danger); } .card .name.desistiu { color: var(--warning); }
+    .card .datetime, .card .discount { font-size: 11px; color: var(--text2); }
+    .admin-actions button {
+      background: transparent; border: 1px solid var(--teal); color: var(--teal);
+      padding: 4px 10px; border-radius: 8px; font-size: 11px; margin-left: 3px; cursor: pointer; transition: 0.15s;
+    }
+    .admin-actions button:hover { background: rgba(0,188,212,0.12); }
+    .admin-actions button.remover { border-color: var(--danger); color: var(--danger); }
+    .admin-actions button.remover:hover { background: rgba(255,82,82,0.12); }
+
+    /* MODALS */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+    .modal.active { display: flex; animation: fadeIn 0.2s ease; }
+    .modal-content { background: var(--surface); padding: 24px; border-radius: 18px; border: 1px solid var(--border); max-width: 440px; width: 92%; max-height: 80vh; overflow-y: auto; }
+    .close-modal { position: absolute; top: 10px; right: 16px; font-size: 22px; cursor: pointer; color: var(--text2); }
+
+    /* TABLES */
+    .weekly-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+    .weekly-table th { background: var(--glass); padding: 8px 10px; text-align: left; color: var(--teal); font-weight: 600; }
+    .weekly-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+
+    /* DOWNLOADS */
+    .download-buttons { display: flex; gap: 8px; margin-bottom: 14px; }
+    .download-buttons .btn { flex: 1; justify-content: center; padding: 10px; font-size: 13px; }
+
+    /* DESCONTOS DETAIL */
+    .filters-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    .filters-row input { width: 130px; padding: 8px 12px; background: var(--glass); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 13px; }
+    .filters-row .search-motoboy { flex: 1; min-width: 180px; }
+    .results-container { max-height: 380px; overflow-y: auto; }
+    .detail-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 6px; }
+    .detail-card .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .detail-card .motoboy-name { font-weight: 600; }
+    .detail-card .total { font-weight: 700; color: var(--warning); }
+    .detail-details { font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+    .empty { text-align: center; padding: 40px; color: var(--text2); }
+
+    /* CORREÇÕES DE COR DOS SELECTS */
+    select, select option { color: #000 !important; }
+    body.light select, body.light select option { color: #000 !important; }
+
+    /* EXCEÇÃO PARA O SELECT DE LANÇAMENTOS NO TEMA ESCURO */
+    #lancamentoMotoboy {
+      background-color: var(--surface) !important;
+      color: var(--text) !important;
+    }
+    #lancamentoMotoboy option {
+      background-color: var(--surface) !important;
+      color: var(--text) !important;
+    }
+    /* TEMA CLARO – VOLTA AO PADRÃO */
+    body.light #lancamentoMotoboy {
+      background-color: #fff !important;
+      color: #000 !important;
+    }
+    body.light #lancamentoMotoboy option {
+      background-color: #fff !important;
+      color: #000 !important;
+    }
+
+    @media (max-width: 500px) {
+      .header h1 { font-size: 16px; }
+      .header-actions button { font-size: 18px; padding: 5px; }
+      .btn { padding: 10px 16px; font-size: 13px; }
+    }
   </style>
 </head>
 <body>
@@ -168,81 +232,41 @@
 </div>
 
 <div id="app">
-  <!-- Cabeçalho (inalterado) -->
   <div class="header">
     <h1>🏍️ Hora de Chegada</h1>
     <div class="presence-indicator" id="presence" title="Dispositivos conectados"></div>
     <div class="header-actions">
       <button id="soundToggle" title="Som"><span class="material-icons">volume_up</span></button>
       <button id="themeToggle" title="Tema"><span class="material-icons" id="themeIcon">dark_mode</span></button>
-      <button id="configBtn" title="Limite Vagas"><span class="material-icons">settings</span></button>
+      <button id="configBtn" title="Vagas"><span class="material-icons">settings</span></button>
       <button id="motoboysBtn" title="Motoboys"><span class="material-icons">people</span></button>
       <button id="lancamentosBtn" title="Lançamentos"><span class="material-icons">shopping_cart</span></button>
       <button id="weeklyBtn" title="Fechamento"><span class="material-icons">account_balance_wallet</span></button>
-      <button id="descontosDetalheBtn" title="Descontos Detalhados"><span class="material-icons">receipt_long</span></button>
+      <button id="descontosDetalheBtn" title="Descontos Det."><span class="material-icons">receipt_long</span></button>
       <button id="downloadBtn" title="Relatórios"><span class="material-icons">download</span></button>
       <button id="historyBtn" title="Histórico"><span class="material-icons">history</span></button>
       <button id="backBtn" title="Voltar" style="display:none"><span class="material-icons">arrow_back</span></button>
     </div>
   </div>
 
-  <!-- Modais (inalterados) -->
-  <div id="deviceModal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal" id="closeDeviceModal">&times;</span>
-      <h2>Dispositivos Conectados</h2>
-      <div id="deviceList" class="device-list"></div>
-    </div>
-  </div>
-  <div id="configModal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal" id="closeConfigModal">&times;</span>
-      <h2>Limite de Vagas</h2>
-      <div class="config-row"><label>Manhã</label><input type="number" id="limiteManha" min="1"></div>
-      <div class="config-row"><label>Noite</label><input type="number" id="limiteNoite" min="1"></div>
-      <button class="btn" id="salvarConfig">Salvar</button>
-    </div>
-  </div>
-  <div id="motoboysModal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal" id="closeMotoboysModal">&times;</span>
-      <h2>Cadastro de Motoboys</h2>
-      <div class="input-row"><input type="text" id="novoMotoboyNome" placeholder="Nome completo"><button class="btn" id="addMotoboyBtn">Adicionar</button></div>
-      <div id="listaMotoboys" style="max-height:300px;overflow-y:auto;"></div>
-    </div>
-  </div>
-  <div id="lancamentosModal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal" id="closeLancamentosModal">&times;</span>
-      <h2>Lançamentos</h2>
-      <select id="lancamentoMotoboy" style="width:100%;padding:10px;margin-bottom:12px;background:var(--glass);border:1px solid var(--border);border-radius:10px;color:var(--text);"></select>
-      <div class="input-row"><input type="number" id="lancamentoValor" placeholder="Valor R$" step="0.01"><input type="date" id="lancamentoData"></div>
-      <input type="text" id="lancamentoDescricao" placeholder="Descrição (ex: yakisoba, coca...)" style="width:100%;padding:10px;margin-bottom:12px;background:var(--glass);border:1px solid var(--border);border-radius:10px;color:var(--text);">
-      <button class="btn" id="salvarLancamento">Registrar</button>
-      <div id="listaLancamentos" style="margin-top:16px;max-height:200px;overflow-y:auto;"></div>
-    </div>
-  </div>
+  <!-- Modais -->
+  <div id="deviceModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeDeviceModal">&times;</span><h2>Dispositivos</h2><div id="deviceList"></div></div></div>
+  <div id="configModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeConfigModal">&times;</span><h2>Limite de Vagas</h2><div class="config-row"><label>Manhã</label><input type="number" id="limiteManha"></div><div class="config-row"><label>Noite</label><input type="number" id="limiteNoite"></div><button class="btn" id="salvarConfig">Salvar</button></div></div>
+  <div id="motoboysModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeMotoboysModal">&times;</span><h2>Cadastro de Motoboys</h2><div class="input-row"><input type="text" id="novoMotoboyNome" placeholder="Nome completo"><button class="btn" id="addMotoboyBtn">Adicionar</button></div><div id="listaMotoboys" style="max-height:300px;overflow-y:auto;"></div></div></div>
+  <div id="lancamentosModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeLancamentosModal">&times;</span><h2>Lançamentos</h2><select id="lancamentoMotoboy" style="width:100%;padding:10px;margin-bottom:10px;background:var(--glass);border:1px solid var(--border);border-radius:10px;"></select><div class="input-row"><input type="number" id="lancamentoValor" placeholder="Valor R$" step="0.01"><input type="date" id="lancamentoData"></div><input type="text" id="lancamentoDescricao" placeholder="Descrição" style="width:100%;padding:10px;margin-bottom:10px;background:var(--glass);border:1px solid var(--border);border-radius:10px;color:var(--text);"><button class="btn" id="salvarLancamento">Registrar</button><div id="listaLancamentos" style="margin-top:14px;max-height:200px;overflow-y:auto;"></div></div></div>
 
-  <!-- Tela Principal (inalterada) -->
+  <!-- TELA PRINCIPAL -->
   <div id="mainView" class="container">
-    <div class="tab-bar">
-      <div class="tab active" id="tabManha">☀️ Manhã</div>
-      <div class="tab" id="tabNoite">🌙 Noite</div>
-    </div>
-    <div class="shift-info">
-      <span>Turno: <strong id="turnoLabel">Manhã</strong></span>
-      <span>Vagas: <strong id="vagasRestantes">0/16</strong></span>
-    </div>
+    <div class="tab-bar"><div class="tab active" id="tabManha">☀️ Manhã</div><div class="tab" id="tabNoite">🌙 Noite</div></div>
+    <div class="shift-info"><span>Turno: <strong id="turnoLabel">Manhã</strong></span><span>Vagas: <strong id="vagasRestantes">0/16</strong></span></div>
     <div class="input-row">
-      <select id="motoboySelect"><option value="">Selecione seu nome...</option></select>
+      <input type="text" id="motoboyInput" placeholder="Nome do motoboy" list="nomeList" autocomplete="off">
+      <datalist id="nomeList"></datalist>
       <button class="btn" id="inscreverBtn"><span class="material-icons">how_to_reg</span> Inscrever</button>
     </div>
     <div class="summary-cards" id="summaryContainer"></div>
     <div class="toolbar">
-      <div class="search-bar">
-        <span class="material-icons">search</span>
-        <input type="text" id="searchInput" placeholder="Pesquisar motoboy...">
-      </div>
+      <div class="search-bar"><span class="material-icons">search</span><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
       <div style="position:relative;">
         <button class="order-btn" id="orderButton"><span class="material-icons">sort</span> Ordenar</button>
         <div class="order-dropdown" id="orderDropdown">
@@ -258,67 +282,44 @@
     </div>
     <div class="list-title">Inscritos de hoje</div>
     <div id="hojeList"></div>
-    <div style="margin-top:16px;display:flex;gap:10px;">
+    <div style="margin-top:14px;display:flex;gap:8px;">
       <button class="btn danger" id="excluirSelecionados"><span class="material-icons">delete</span> Excluir selecionados</button>
       <button class="btn danger" id="limparTodosBtn"><span class="material-icons">delete_forever</span> Limpar todos</button>
     </div>
   </div>
 
-  <!-- Fechamento Semanal -->
+  <!-- FECHAMENTO -->
   <div id="weeklyView" class="container" style="display:none">
     <div class="list-title">Fechamento Semanal</div>
     <div class="week-selector"><label>Semana:</label><input type="date" id="weekStartDate"><span>até</span><input type="date" id="weekEndDate" readonly><button class="btn" id="loadWeekBtn">Carregar</button></div>
-    <p style="color:var(--text2);margin-bottom:12px;">Período: <span id="periodoLabel"></span></p>
+    <p style="color:var(--text2);margin-bottom:10px;">Período: <span id="periodoLabel"></span></p>
+    <div class="download-buttons"><button class="btn" id="weeklyExcel">Excel</button><button class="btn" id="weeklyPdf">PDF</button><button class="btn" id="weeklyTxt">TXT</button></div>
     <div id="weeklyContent"></div>
-    <div class="download-options"><button class="btn" id="weeklyExcel">Excel</button><button class="btn" id="weeklyPdf">PDF</button><button class="btn" id="weeklyTxt">TXT</button></div>
   </div>
 
-  <!-- Descontos Detalhados (CORRIGIDO) -->
+  <!-- DESCONTOS DETALHADOS -->
   <div id="descontosDetailView" class="container" style="display:none">
-    <div class="list-title">📋 Descontos Detalhados por Motoboy</div>
+    <div class="list-title">📋 Descontos Detalhados</div>
     <div class="filters-row">
-      <div class="periodo-row">
-        <label>De:</label>
-        <input type="date" id="descDetInicio">
-        <label>Até:</label>
-        <input type="date" id="descDetFim">
-      </div>
-      <input type="text" id="descDetSearchInput" placeholder="Digite o nome do motoboy..." class="search-motoboy">
+      <label>De:</label><input type="date" id="descDetInicio"><label>Até:</label><input type="date" id="descDetFim">
+      <input type="text" id="descDetSearchInput" placeholder="Nome do motoboy..." class="search-motoboy">
       <button class="btn small" id="descDetFiltrarBtn"><span class="material-icons">filter_list</span> Filtrar</button>
     </div>
-
-    <!-- Botões de download no TOPO -->
-    <div class="download-buttons">
-      <button class="btn" id="descDetExcel"><span class="material-icons">table_view</span> Excel</button>
-      <button class="btn" id="descDetPdf"><span class="material-icons">picture_as_pdf</span> PDF</button>
-      <button class="btn" id="descDetTxt"><span class="material-icons">description</span> TXT</button>
-    </div>
-
+    <div class="download-buttons"><button class="btn" id="descDetExcel">Excel</button><button class="btn" id="descDetPdf">PDF</button><button class="btn" id="descDetTxt">TXT</button></div>
     <div id="descDetContent" class="results-container"></div>
   </div>
 
-  <!-- Downloads (diários) -->
+  <!-- DOWNLOADS -->
   <div id="downloadsView" class="container" style="display:none">
     <div class="list-title">Download de Relatórios</div>
     <div class="date-tabs" id="downloadDateTabs"></div>
-    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;">
-      <label>Turno:</label>
-      <select id="downloadTurnoSelect" style="padding:8px 12px;background:var(--glass);border:1px solid var(--border);border-radius:10px;color:var(--text);">
-        <option value="todos">Ambos</option>
-        <option value="manha">Manhã</option>
-        <option value="noite">Noite</option>
-      </select>
-    </div>
-    <div class="download-options"><button class="btn" id="downloadExcel">Excel</button><button class="btn" id="downloadPdf">PDF</button><button class="btn" id="downloadTxt">TXT</button></div>
-    <p id="downloadInfo" style="margin-top:10px;color:var(--text2);font-size:13px;"></p>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;"><label>Turno:</label><select id="downloadTurnoSelect" style="color:#000;"><option value="todos">Ambos</option><option value="manha">Manhã</option><option value="noite">Noite</option></select></div>
+    <div class="download-buttons"><button class="btn" id="downloadExcel">Excel</button><button class="btn" id="downloadPdf">PDF</button><button class="btn" id="downloadTxt">TXT</button></div>
+    <p id="downloadInfo" style="color:var(--text2);font-size:12px;"></p>
   </div>
 
-  <!-- Histórico -->
-  <div id="historyView" class="container" style="display:none">
-    <div class="list-title">Histórico de Presença</div>
-    <div class="date-tabs" id="dateTabs"></div>
-    <div id="historyDayList"></div>
-  </div>
+  <!-- HISTÓRICO -->
+  <div id="historyView" class="container" style="display:none"><div class="list-title">Histórico</div><div class="date-tabs" id="dateTabs"></div><div id="historyDayList"></div></div>
 </div>
 
 <script type="module">
@@ -329,11 +330,10 @@
     projectId: "ponto-motoboy",
     storageBucket: "ponto-motoboy.firebasestorage.app",
     messagingSenderId: "526542472436",
-    appId: "1:526542472436:web:234049ec552928de3c8aa1",
-    measurementId: "G-R41TKKZSMN"
+    appId: "1:526542472436:web:234049ec552928de3c8aa1"
   };
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove, update } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
   const registrosRef = ref(database, 'registros');
@@ -365,23 +365,20 @@
   onValue(configRef,snap=>{if(snap.exists()){const d=snap.val();limites={manha:d.manha??16,noite:d.noite??40}}atualizarInterface()});
 
   let turno='manha',db=[],motoboys=[],lancamentos=[];
+  let motoboysObj = {};
   let ordem='naoChegouPrimeiro',filtroStatus=null;
-  let selectedDayDownload=null,selectedDayHistory=null,weeklyData=[];
-  let descDetData=[];
+  let selectedDayDownload=null,selectedDayHistory=null,weeklyData=[],descDetData=[];
+  let renderTimeout;
 
-  onValue(registrosRef,snap=>{const data=snap.val()||{};db=Object.entries(data).map(([k,v])=>({...v,_firebaseKey:k}));atualizarInterface();updateMotoboySelect()});
-  onValue(motoboysRef,snap=>{motoboys=snap.exists()?Object.values(snap.val()):[];atualizarInterface();updateMotoboySelect()});
+  onValue(registrosRef,snap=>{const data=snap.val()||{};db=Object.entries(data).map(([k,v])=>({...v,_firebaseKey:k}));clearTimeout(renderTimeout);renderTimeout=setTimeout(()=>{atualizarInterface();updateMotoboySelect()}, 80)});
+  onValue(motoboysRef,snap=>{if(snap.exists()){motoboysObj=snap.val();motoboys=Object.values(motoboysObj);}else{motoboysObj={};motoboys=[];}updateMotoboySelect();renderMotoboys();});
   onValue(lancamentosRef,snap=>{lancamentos=snap.exists()?Object.entries(snap.val()).map(([k,v])=>({...v,_firebaseKey:k})):[]});
 
-  function atualizarInterface(){
-    renderHoje();renderSummary();
-    if(document.getElementById('historyView').style.display==='block')renderHist(selectedDayHistory);
-    if(document.getElementById('downloadsView').style.display==='block')renderDownTabs();
-  }
+  function atualizarInterface(){renderHoje();renderSummary();if(document.getElementById('historyView').style.display==='block')renderHist(selectedDayHistory);if(document.getElementById('downloadsView').style.display==='block')renderDownTabs()}
   function updateMotoboySelect(){
-    const s=document.getElementById('motoboySelect'),l=document.getElementById('lancamentoMotoboy');
     const sorted=[...motoboys].sort((a,b)=>a.nome.localeCompare(b.nome));
-    s.innerHTML='<option value="">Selecione seu nome...</option>'+sorted.map(m=>`<option value="${m.nome}">${m.nome}</option>`).join('');
+    document.getElementById('nomeList').innerHTML=sorted.map(m=>`<option value="${m.nome}">`).join('');
+    const l=document.getElementById('lancamentoMotoboy');
     if(l)l.innerHTML=sorted.map(m=>`<option value="${m.nome}">${m.nome}</option>`).join('');
   }
 
@@ -402,45 +399,33 @@
     if(!r.dataPresenca||r.status!=='presente')return 0;
     const d=new Date(r.dataPresenca);const minsChegada=d.getHours()*60+d.getMinutes();
     const baseMin=r.turno==='manha'?(11*60+1):(17*60+15);
-    if(minsChegada<=baseMin)return 0;
-    return minsChegada-baseMin;
+    return minsChegada>baseMin?minsChegada-baseMin:0;
   }
 
   let sound=true;const audioCtx=new(window.AudioContext||window.webkitAudioContext)();
   function tone(f,d,t='sine'){if(!sound)return;const o=audioCtx.createOscillator();o.type=t;o.frequency.value=f;o.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d)}
-  function chegouSound(){tone(880,0.15)}function atrasoSound(){tone(220,0.3,'square')}
-
   document.getElementById('tabManha').onclick=()=>{turno='manha';document.getElementById('tabManha').classList.add('active');document.getElementById('tabNoite').classList.remove('active');filtroStatus=null;atualizarInterface()};
   document.getElementById('tabNoite').onclick=()=>{turno='noite';document.getElementById('tabNoite').classList.add('active');document.getElementById('tabManha').classList.remove('active');filtroStatus=null;atualizarInterface()};
 
   function inscrever(){
-    const nome=document.getElementById('motoboySelect').value;
-    if(!nome)return alert('Selecione seu nome');
-    if(!motoboys.some(m=>m.nome===nome))return alert('Nome não cadastrado.');
-    if(getInscritos().some(r=>r.nome===nome))return alert('Você já está inscrito neste turno hoje.');
+    const nome=document.getElementById('motoboyInput').value.trim();
+    if(!nome)return alert('Digite um nome');
+    if(getInscritos().some(r=>r.nome.toLowerCase()===nome.toLowerCase()&&r.turno===turno))return alert('Já inscrito hoje.');
     if(getInscritos().length>=limites[turno])return alert('Vagas esgotadas!');
     push(registrosRef,{nome,turno,dataInscricao:now().toISOString(),status:'inscrito',dataPresenca:null});
-    document.getElementById('motoboySelect').value='';tone(660,0.1);
+    document.getElementById('motoboyInput').value='';tone(660,0.1);
   }
   document.getElementById('inscreverBtn').onclick=inscrever;
+  document.getElementById('motoboyInput').addEventListener('keypress',e=>{if(e.key==='Enter')inscrever()});
 
-  document.getElementById('limparTodosBtn').onclick=async()=>{
-    if(!confirm(`Excluir TODOS os inscritos do turno ${turno} hoje?`))return;
-    for(const r of getInscritos()){if(r._firebaseKey)await remove(ref(database,`registros/${r._firebaseKey}`))}
-  };
+  document.getElementById('limparTodosBtn').onclick=async()=>{if(!confirm(`Excluir TODOS do turno ${turno}?`))return;for(const r of getInscritos()){if(r._firebaseKey)await remove(ref(database,`registros/${r._firebaseKey}`))}};
   const sel=new Set();
   document.addEventListener('change',e=>{if(e.target.classList.contains('selectCheckbox')){e.target.checked?sel.add(e.target.dataset.id):sel.delete(e.target.dataset.id)}});
-  document.getElementById('excluirSelecionados').onclick=async()=>{if(sel.size===0)return alert('Nenhum selecionado.');if(!confirm(`Excluir ${sel.size} registro(s)?`))return;for(const k of sel){await remove(ref(database,`registros/${k}`))}sel.clear()};
+  document.getElementById('excluirSelecionados').onclick=async()=>{if(!sel.size)return alert('Nenhum selecionado.');if(!confirm(`Excluir ${sel.size} registro(s)?`))return;for(const k of sel){await remove(ref(database,`registros/${k}`))}sel.clear()};
 
   function renderSummary(){
-    const insc=getInscritos();
-    const s={total:insc.length,presente:insc.filter(r=>r.status==='presente').length,aguardando:insc.filter(r=>r.status==='inscrito').length,ausente:insc.filter(r=>r.status==='ausente').length,desistiu:insc.filter(r=>r.status==='desistiu').length};
-    document.getElementById('summaryContainer').innerHTML=`
-      <div class="summary-card total ${filtroStatus===null?'active-filter':''}" data-f="todos"><div class="number">${s.total}</div><div class="label">Total</div></div>
-      <div class="summary-card presente ${filtroStatus==='presente'?'active-filter':''}" data-f="presente"><div class="number">${s.presente}</div><div class="label">✅ Chegaram</div></div>
-      <div class="summary-card aguardando ${filtroStatus==='inscrito'?'active-filter':''}" data-f="inscrito"><div class="number">${s.aguardando}</div><div class="label">⏳ Aguardando</div></div>
-      <div class="summary-card ausente ${filtroStatus==='ausente'?'active-filter':''}" data-f="ausente"><div class="number">${s.ausente}</div><div class="label">❌ Não chegaram</div></div>
-      <div class="summary-card desistiu ${filtroStatus==='desistiu'?'active-filter':''}" data-f="desistiu"><div class="number">${s.desistiu}</div><div class="label">🚫 Desistiram</div></div>`;
+    const insc=getInscritos();const s={total:insc.length,presente:insc.filter(r=>r.status==='presente').length,aguardando:insc.filter(r=>r.status==='inscrito').length,ausente:insc.filter(r=>r.status==='ausente').length,desistiu:insc.filter(r=>r.status==='desistiu').length};
+    document.getElementById('summaryContainer').innerHTML=`<div class="summary-card total ${filtroStatus===null?'active-filter':''}" data-f="todos"><div class="number">${s.total}</div><div class="label">Total</div></div><div class="summary-card presente ${filtroStatus==='presente'?'active-filter':''}" data-f="presente"><div class="number">${s.presente}</div><div class="label">✅ Chegaram</div></div><div class="summary-card aguardando ${filtroStatus==='inscrito'?'active-filter':''}" data-f="inscrito"><div class="number">${s.aguardando}</div><div class="label">⏳ Aguardando</div></div><div class="summary-card ausente ${filtroStatus==='ausente'?'active-filter':''}" data-f="ausente"><div class="number">${s.ausente}</div><div class="label">❌ Não chegaram</div></div><div class="summary-card desistiu ${filtroStatus==='desistiu'?'active-filter':''}" data-f="desistiu"><div class="number">${s.desistiu}</div><div class="label">🚫 Desistiram</div></div>`;
     document.querySelectorAll('.summary-card').forEach(c=>c.onclick=()=>{const f=c.dataset.f;filtroStatus=(f==='todos'||filtroStatus===f)?null:f;renderHoje();renderSummary()});
     document.getElementById('turnoLabel').textContent=turno==='manha'?'Manhã':'Noite';
     document.getElementById('vagasRestantes').textContent=`${s.total}/${limites[turno]}`;
@@ -458,14 +443,14 @@
       else if(r.status==='desistiu'){icone='remove_circle';classe='desistiu';extra='<div>Desistiu</div>'}
       else extra='<div>Aguardando</div>';
       const ch=sel.has(r._firebaseKey)?'checked':'';
-      return`<div class="card"><div style="display:flex;align-items:center;gap:12px;flex:1"><input type="checkbox" class="selectCheckbox" data-id="${r._firebaseKey}" ${ch}><span class="material-icons" style="color:${icone==='check_circle'?'var(--neon)':icone==='cancel'?'var(--danger)':icone==='remove_circle'?'var(--warning)':'var(--text)'}">${icone}</span><div><div class="name ${classe}">${r.nome}</div>${extra}</div></div><div class="admin-actions">${r.status==='inscrito'?`<button class="chegou" data-id="${r._firebaseKey}">✅</button><button class="naoChegou" data-id="${r._firebaseKey}">❌</button><button class="desistiu" data-id="${r._firebaseKey}">🚫</button>`:''}${r.status==='presente'?`<button class="editarHora" data-id="${r._firebaseKey}">✏️</button>`:''}<button class="remover" data-id="${r._firebaseKey}">🗑️</button></div></div>`;
+      return`<div class="card"><div style="display:flex;align-items:center;gap:10px;flex:1"><input type="checkbox" class="selectCheckbox" data-id="${r._firebaseKey}" ${ch} style="transform:scale(1.1);margin-right:6px;"><span class="material-icons" style="color:${icone==='check_circle'?'var(--accent)':icone==='cancel'?'var(--danger)':icone==='remove_circle'?'var(--warning)':'var(--text)'}">${icone}</span><div><div class="name ${classe}">${r.nome}</div>${extra}</div></div><div class="admin-actions">${r.status==='inscrito'?`<button class="chegou" data-id="${r._firebaseKey}">✅</button><button class="naoChegou" data-id="${r._firebaseKey}">❌</button><button class="desistiu" data-id="${r._firebaseKey}">🚫</button>`:''}${r.status==='presente'?`<button class="editarHora" data-id="${r._firebaseKey}">✏️</button>`:''}<button class="remover" data-id="${r._firebaseKey}">🗑️</button></div></div>`;
     }).join('');
   }
   document.getElementById('searchInput').oninput=renderHoje;
 
   document.addEventListener('click',e=>{
     if(!e.target.dataset.id)return;const k=e.target.dataset.id;const reg=db.find(r=>r._firebaseKey===k);if(!reg)return;
-    if(e.target.classList.contains('chegou')){reg.status='presente';reg.dataPresenca=now().toISOString();set(ref(database,`registros/${k}`),reg);calcDesc(reg)>0?atrasoSound():chegouSound()}
+    if(e.target.classList.contains('chegou')){reg.status='presente';reg.dataPresenca=now().toISOString();set(ref(database,`registros/${k}`),reg)}
     else if(e.target.classList.contains('naoChegou')){reg.status='ausente';reg.dataPresenca=null;set(ref(database,`registros/${k}`),reg)}
     else if(e.target.classList.contains('desistiu')){reg.status='desistiu';reg.dataPresenca=null;set(ref(database,`registros/${k}`),reg)}
     else if(e.target.classList.contains('remover')){if(confirm('Remover?'))remove(ref(database,`registros/${k}`))}
@@ -479,139 +464,108 @@
   document.getElementById('presence').onclick=async()=>{const snap=await new Promise(res=>onValue(presenceRef,res,{onlyOnce:true}));const data=snap.val()||{};let h='<table><tr><th>IP</th><th>Navegador</th><th>SO</th></tr>';for(const[,v]of Object.entries(data))h+=`<tr><td>${v.ip||'N/D'}</td><td>${v.browser||'N/D'}</td><td>${v.os||'N/D'}</td></tr>`;document.getElementById('deviceList').innerHTML=h||'Nenhum dispositivo.';document.getElementById('deviceModal').classList.add('active')};
   document.getElementById('closeDeviceModal').onclick=()=>document.getElementById('deviceModal').classList.remove('active');
 
-  // Motoboys
+  // ========== MOTOB OYS (com edição inline) ==========
   document.getElementById('motoboysBtn').onclick=()=>{renderMotoboys();document.getElementById('motoboysModal').classList.add('active')};
   document.getElementById('closeMotoboysModal').onclick=()=>document.getElementById('motoboysModal').classList.remove('active');
+
   function renderMotoboys(){
-    const sorted=[...motoboys].sort((a,b)=>a.nome.localeCompare(b.nome));
-    document.getElementById('listaMotoboys').innerHTML=sorted.map(m=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span>${m.nome}</span><button class="btn danger removerMotoboy" data-nome="${m.nome}" style="padding:4px 10px;font-size:12px">🗑️</button></div>`).join('')||'<div class="empty">Nenhum motoboy</div>';
-    document.querySelectorAll('.removerMotoboy').forEach(b=>b.onclick=async()=>{if(confirm('Remover motoboy?')){const key=Object.keys(motoboys).find(k=>motoboys[k].nome===b.dataset.nome);if(key)await remove(ref(database,`motoboys/${key}`))}});
+    const sorted = Object.entries(motoboysObj).sort((a,b)=>a[1].nome.localeCompare(b[1].nome));
+    document.getElementById('listaMotoboys').innerHTML = sorted.map(([key, m]) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+        <span class="nome-motoboy" data-key="${key}" style="cursor:pointer;flex:1;" title="Clique para editar">${m.nome}</span>
+        <button class="btn danger removerMotoboy" data-key="${key}" style="padding:4px 10px;font-size:12px;">🗑️</button>
+      </div>
+    `).join('') || '<div class="empty">Nenhum motoboy</div>';
+
+    // Eventos de clique para editar
+    document.querySelectorAll('.nome-motoboy').forEach(span => {
+      span.addEventListener('click', function() {
+        const key = this.dataset.key;
+        const currentName = this.textContent;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentName;
+        input.style.cssText = 'width:100%;padding:4px;background:var(--glass);border:1px solid var(--border);border-radius:6px;color:var(--text);';
+        this.replaceWith(input);
+        input.focus();
+        input.select();
+
+        const salvarEdicao = async () => {
+          const novoNome = input.value.trim();
+          if (novoNome && novoNome !== currentName) {
+            await update(ref(database, `motoboys/${key}`), { nome: novoNome });
+          } else {
+            // Reverte para o span original
+            renderMotoboys();
+          }
+        };
+
+        input.addEventListener('blur', salvarEdicao);
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            input.blur();
+          }
+        });
+      });
+    });
+
+    // Remover
+    document.querySelectorAll('.removerMotoboy').forEach(btn => {
+      btn.onclick = async () => {
+        if (confirm('Remover motoboy?')) {
+          await remove(ref(database, `motoboys/${btn.dataset.key}`));
+        }
+      };
+    });
   }
-  document.getElementById('addMotoboyBtn').onclick=async()=>{const n=document.getElementById('novoMotoboyNome').value.trim();if(!n)return alert('Digite um nome');if(motoboys.some(m=>m.nome.toLowerCase()===n.toLowerCase()))return alert('Já cadastrado');await push(motoboysRef,{nome:n});document.getElementById('novoMotoboyNome').value=''};
+
+  // Adicionar motoboy (com Enter)
+  document.getElementById('addMotoboyBtn').onclick = adicionarMotoboy;
+  document.getElementById('novoMotoboyNome').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') adicionarMotoboy();
+  });
+
+  async function adicionarMotoboy() {
+    const nome = document.getElementById('novoMotoboyNome').value.trim();
+    if (!nome) return alert('Digite um nome');
+    if (motoboys.some(m => m.nome.toLowerCase() === nome.toLowerCase())) return alert('Já cadastrado');
+    await push(motoboysRef, { nome });
+    document.getElementById('novoMotoboyNome').value = '';
+  }
 
   // Lançamentos
   document.getElementById('lancamentosBtn').onclick=()=>{updateMotoboySelect();document.getElementById('lancamentoData').value=now().toISOString().split('T')[0];renderLanc();document.getElementById('lancamentosModal').classList.add('active')};
   document.getElementById('closeLancamentosModal').onclick=()=>document.getElementById('lancamentosModal').classList.remove('active');
   document.getElementById('salvarLancamento').onclick=async()=>{const m=document.getElementById('lancamentoMotoboy').value;const v=parseFloat(document.getElementById('lancamentoValor').value);const d=document.getElementById('lancamentoData').value;const desc=document.getElementById('lancamentoDescricao').value.trim();if(!m||!v||!d)return alert('Preencha os campos');await push(lancamentosRef,{motoboy:m,valor:v,data:d,descricao:desc||'Lançamento'});document.getElementById('lancamentoValor').value='';document.getElementById('lancamentoDescricao').value='';renderLanc()};
-  function renderLanc(){const sorted=[...lancamentos].sort((a,b)=>new Date(b.data)-new Date(a.data));document.getElementById('listaLancamentos').innerHTML=sorted.map(l=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><span>${l.motoboy} - R$ ${l.valor.toFixed(2)} (${l.data}) ${l.descricao}</span><button class="btn danger removerLanc" data-id="${l._firebaseKey}" style="padding:2px 8px;font-size:11px">🗑️</button></div>`).join('')||'<div class="empty">Nenhum lançamento</div>';document.querySelectorAll('.removerLanc').forEach(b=>b.onclick=async()=>{if(confirm('Remover?'))await remove(ref(database,`lancamentos/${b.dataset.id}`))})}
+  function renderLanc(){const sorted=[...lancamentos].sort((a,b)=>new Date(b.data)-new Date(a.data));document.getElementById('listaLancamentos').innerHTML=sorted.map(l=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span>${l.motoboy} - R$ ${l.valor.toFixed(2)} (${l.data}) ${l.descricao}</span><button class="btn danger removerLanc" data-id="${l._firebaseKey}" style="padding:2px 8px;font-size:11px">🗑️</button></div>`).join('')||'<div class="empty">Nenhum lançamento</div>';document.querySelectorAll('.removerLanc').forEach(b=>b.onclick=async()=>{if(confirm('Remover?'))await remove(ref(database,`lancamentos/${b.dataset.id}`))})}
 
-  // ========== DESCONTOS DETALHADOS (SEM ZEROS - CORRIGIDO) ==========
+  // Descontos Detalhados
   function filtrarDescontosDetalhados(){
     const inicio=new Date(document.getElementById('descDetInicio').value+'T00:00:00-03:00');
     const fim=new Date(document.getElementById('descDetFim').value+'T23:59:59-03:00');
     const termoBusca=document.getElementById('descDetSearchInput').value.trim().toLowerCase();
-
     const mapa=new Map();
     db.filter(r=>r.status==='presente'&&new Date(r.dataPresenca)>=inicio&&new Date(r.dataPresenca)<=fim)
-      .forEach(r=>{
-        const nome=r.nome;
-        if(termoBusca&&!nome.toLowerCase().includes(termoBusca))return;
-        if(!mapa.has(nome))mapa.set(nome,{nome,atrasosManha:[],atrasosNoite:[],lancamentos:[],totalManha:0,totalNoite:0,totalLanc:0});
-        const entry=mapa.get(nome);
-        const desc=calcDesc(r);const mins=calcMinutosAtraso(r);
-        if(r.turno==='manha'){
-          entry.atrasosManha.push({data:fmt(r.dataPresenca),minutosAtraso:mins,valor:desc});
-          entry.totalManha+=desc;
-        }else{
-          entry.atrasosNoite.push({data:fmt(r.dataPresenca),minutosAtraso:mins,valor:desc});
-          entry.totalNoite+=desc;
-        }
-      });
-    lancamentos.filter(l=>{const d=new Date(l.data);return d>=inicio&&d<=fim&&(!termoBusca||l.motoboy.toLowerCase().includes(termoBusca))})
-      .forEach(l=>{
-        const nome=l.motoboy;
-        if(!mapa.has(nome))mapa.set(nome,{nome,atrasosManha:[],atrasosNoite:[],lancamentos:[],totalManha:0,totalNoite:0,totalLanc:0});
-        const entry=mapa.get(nome);
-        entry.lancamentos.push({data:l.data,descricao:l.descricao||'Item',valor:l.valor});
-        entry.totalLanc+=l.valor;
-      });
-
-    // Filtra para manter apenas motoboys com total > 0
-    descDetData=Array.from(mapa.values())
-      .filter(d=>(d.totalManha+d.totalNoite+d.totalLanc)>0)
-      .sort((a,b)=>a.nome.localeCompare(b.nome));
+      .forEach(r=>{const nome=r.nome;if(termoBusca&&!nome.toLowerCase().includes(termoBusca))return;if(!mapa.has(nome))mapa.set(nome,{nome,atrasosManha:[],atrasosNoite:[],lancamentos:[],totalManha:0,totalNoite:0,totalLanc:0});const e=mapa.get(nome);const desc=calcDesc(r);const mins=calcMinutosAtraso(r);if(r.turno==='manha'){e.atrasosManha.push({data:fmt(r.dataPresenca),minutosAtraso:mins,valor:desc});e.totalManha+=desc}else{e.atrasosNoite.push({data:fmt(r.dataPresenca),minutosAtraso:mins,valor:desc});e.totalNoite+=desc}});
+    lancamentos.filter(l=>{const d=new Date(l.data);return d>=inicio&&d<=fim&&(!termoBusca||l.motoboy.toLowerCase().includes(termoBusca))}).forEach(l=>{const nome=l.motoboy;if(!mapa.has(nome))mapa.set(nome,{nome,atrasosManha:[],atrasosNoite:[],lancamentos:[],totalManha:0,totalNoite:0,totalLanc:0});const e=mapa.get(nome);e.lancamentos.push({data:l.data,descricao:l.descricao||'Item',valor:l.valor});e.totalLanc+=l.valor});
+    descDetData=Array.from(mapa.values()).filter(d=>(d.totalManha+d.totalNoite+d.totalLanc)>0).sort((a,b)=>a.nome.localeCompare(b.nome));
     renderDescDetContent();
   }
-
   function renderDescDetContent(){
     const c=document.getElementById('descDetContent');
     if(!descDetData.length){c.innerHTML='<div class="empty">Nenhum desconto encontrado.</div>';return}
-    c.innerHTML=descDetData.map(d=>{
-      const total=d.totalManha+d.totalNoite+d.totalLanc;
-      let detalhes='';
-      if(d.totalManha>0){
-        detalhes+=`<div style="margin-top:4px;"><strong>☀️ Manhã (Total: R$ ${d.totalManha.toFixed(2)})</strong></div>`;
-        detalhes+=d.atrasosManha.map(a=>`📅 ${a.data} | Atraso ${a.minutosAtraso}min | -R$ ${a.valor.toFixed(2)}`).join('<br>');
-      }
-      if(d.totalNoite>0){
-        detalhes+=`<div style="margin-top:4px;"><strong>🌙 Noite (Total: R$ ${d.totalNoite.toFixed(2)})</strong></div>`;
-        detalhes+=d.atrasosNoite.map(a=>`📅 ${a.data} | Atraso ${a.minutosAtraso}min | -R$ ${a.valor.toFixed(2)}`).join('<br>');
-      }
-      if(d.totalLanc>0){
-        detalhes+=`<div style="margin-top:4px;"><strong>🛍️ Lançamentos (Total: R$ ${d.totalLanc.toFixed(2)})</strong></div>`;
-        detalhes+=d.lancamentos.map(l=>`🛒 ${l.data} | ${l.descricao} | -R$ ${l.valor.toFixed(2)}`).join('<br>');
-      }
-      let tags='';
-      if(d.totalManha>0)tags+=`<span class="item-tag atraso">☀️ Manhã: R$ ${d.totalManha.toFixed(2)}</span>`;
-      if(d.totalNoite>0)tags+=`<span class="item-tag atraso">🌙 Noite: R$ ${d.totalNoite.toFixed(2)}</span>`;
-      if(d.totalLanc>0)tags+=`<span class="item-tag extra">🛍️ Lançamentos: R$ ${d.totalLanc.toFixed(2)}</span>`;
-
-      return`
-        <div class="detail-card">
-          <div class="header-row"><span class="motoboy-name">👤 ${d.nome}</span><span class="total">Total: R$ ${total.toFixed(2)}</span></div>
-          ${tags?`<div class="items">${tags}</div>`:''}
-          <div class="detail-details">${detalhes}</div>
-        </div>
-      `;
-    }).join('');
+    c.innerHTML=descDetData.map(d=>{const total=d.totalManha+d.totalNoite+d.totalLanc;let detalhes='';if(d.totalManha>0){detalhes+=`<div style="margin-top:4px;"><strong>☀️ Manhã (Total: R$ ${d.totalManha.toFixed(2)})</strong></div>`;detalhes+=d.atrasosManha.map(a=>`📅 ${a.data} | Atraso ${a.minutosAtraso}min | -R$ ${a.valor.toFixed(2)}`).join('<br>')}if(d.totalNoite>0){detalhes+=`<div style="margin-top:4px;"><strong>🌙 Noite (Total: R$ ${d.totalNoite.toFixed(2)})</strong></div>`;detalhes+=d.atrasosNoite.map(a=>`📅 ${a.data} | Atraso ${a.minutosAtraso}min | -R$ ${a.valor.toFixed(2)}`).join('<br>')}if(d.totalLanc>0){detalhes+=`<div style="margin-top:4px;"><strong>🛍️ Lançamentos (Total: R$ ${d.totalLanc.toFixed(2)})</strong></div>`;detalhes+=d.lancamentos.map(l=>`🛒 ${l.data} | ${l.descricao} | -R$ ${l.valor.toFixed(2)}`).join('<br>')}
+      return`<div class="detail-card"><div class="header-row"><span class="motoboy-name">👤 ${d.nome}</span><span class="total">Total: R$ ${total.toFixed(2)}</span></div><div class="detail-details">${detalhes}</div></div>`}).join('');
   }
-
-  function exportarDescDet(formato){
-    if(!descDetData.length)return alert('Nenhum dado para exportar.');
-    const rows=[];
-    descDetData.forEach(d=>{
-      d.atrasosManha.forEach(a=>rows.push({Nome:d.nome,Tipo:'Atraso (Manhã)',Data:a.data,MinutosAtraso:a.minutosAtraso,Descrição:'-','Valor (R$)':a.valor.toFixed(2)}));
-      d.atrasosNoite.forEach(a=>rows.push({Nome:d.nome,Tipo:'Atraso (Noite)',Data:a.data,MinutosAtraso:a.minutosAtraso,Descrição:'-','Valor (R$)':a.valor.toFixed(2)}));
-      d.lancamentos.forEach(l=>rows.push({Nome:d.nome,Tipo:'Lançamento',Data:l.data,MinutosAtraso:'-',Descrição:l.descricao,'Valor (R$)':l.valor.toFixed(2)}));
-    });
-    if(!rows.length)return alert('Nenhum registro.');
-    if(formato==='excel'){
-      const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb,ws,'Descontos');XLSX.writeFile(wb,'descontos_detalhados.xlsx');
-    }else if(formato==='pdf'){
-      const{jsPDF}=window.jspdf;const doc=new jsPDF('landscape');
-      doc.autoTable({head:[['Nome','Tipo','Data','Minutos Atraso','Descrição','Valor (R$)']],body:rows.map(r=>[r.Nome,r.Tipo,r.Data,r.MinutosAtraso,r['Descrição'],r['Valor (R$)']]),styles:{fontSize:8},headStyles:{fontSize:9}});
-      doc.save('descontos_detalhados.pdf');
-    }else if(formato==='txt'){
-      let t='DESCONTOS DETALHADOS\n'+'='.repeat(60)+'\n\n';
-      descDetData.forEach(d=>{
-        t+=`👤 ${d.nome} (Total: R$ ${(d.totalManha+d.totalNoite+d.totalLanc).toFixed(2)})\n`;
-        t+=`${'-'.repeat(40)}\n`;
-        if(d.totalManha>0){t+=`☀️ Manhã: R$ ${d.totalManha.toFixed(2)}\n`;d.atrasosManha.forEach(a=>t+=`  📅 ${a.data} | Atraso ${a.minutosAtraso}min | -R$ ${a.valor.toFixed(2)}\n`)}
-        if(d.totalNoite>0){t+=`🌙 Noite: R$ ${d.totalNoite.toFixed(2)}\n`;d.atrasosNoite.forEach(a=>t+=`  📅 ${a.data} | Atraso ${a.minutosAtraso}min | -R$ ${a.valor.toFixed(2)}\n`)}
-        if(d.totalLanc>0){t+=`🛍️ Lançamentos: R$ ${d.totalLanc.toFixed(2)}\n`;d.lancamentos.forEach(l=>t+=`  🛒 ${l.data} | ${l.descricao} | -R$ ${l.valor.toFixed(2)}\n`)}
-        t+='\n';
-      });
-      const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);a.download='descontos_detalhados.txt';a.click();
-    }
-  }
-
-  document.getElementById('descontosDetalheBtn').onclick=()=>{
-    setViews(false,false,true,false,false);
-    const hoje=now();const trintaDiasAtras=new Date(hoje);trintaDiasAtras.setDate(hoje.getDate()-30);
-    document.getElementById('descDetInicio').value=trintaDiasAtras.toISOString().split('T')[0];
-    document.getElementById('descDetFim').value=hoje.toISOString().split('T')[0];
-    document.getElementById('descDetSearchInput').value='';
-    filtrarDescontosDetalhados();
-  };
+  function exportarDescDet(f){if(!descDetData.length)return alert('Nenhum dado.');const rows=[];descDetData.forEach(d=>{d.atrasosManha.forEach(a=>rows.push({Nome:d.nome,Tipo:'Atraso (Manhã)',Data:a.data,MinutosAtraso:a.minutosAtraso,Descrição:'-','Valor (R$)':a.valor.toFixed(2)}));d.atrasosNoite.forEach(a=>rows.push({Nome:d.nome,Tipo:'Atraso (Noite)',Data:a.data,MinutosAtraso:a.minutosAtraso,Descrição:'-','Valor (R$)':a.valor.toFixed(2)}));d.lancamentos.forEach(l=>rows.push({Nome:d.nome,Tipo:'Lançamento',Data:l.data,MinutosAtraso:'-',Descrição:l.descricao,'Valor (R$)':l.valor.toFixed(2)}))});if(!rows.length)return alert('Nenhum registro.');if(f==='excel'){const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Descontos');XLSX.writeFile(wb,'descontos_detalhados.xlsx')}else if(f==='pdf'){const{jsPDF}=window.jspdf;const doc=new jsPDF('landscape');doc.autoTable({head:[['Nome','Tipo','Data','Min. Atraso','Descrição','Valor (R$)']],body:rows.map(r=>[r.Nome,r.Tipo,r.Data,r.MinutosAtraso,r['Descrição'],r['Valor (R$)']]),styles:{fontSize:8}});doc.save('descontos_detalhados.pdf')}else if(f==='txt'){let t='DESCONTOS DETALHADOS\n'+'='.repeat(60)+'\n\n';descDetData.forEach(d=>{t+=`👤 ${d.nome} (Total: R$ ${(d.totalManha+d.totalNoite+d.totalLanc).toFixed(2)})\n`;if(d.totalManha>0){t+=`☀️ Manhã: R$ ${d.totalManha.toFixed(2)}\n`;d.atrasosManha.forEach(a=>t+=`  📅 ${a.data} | Atraso ${a.minutosAtraso}min | -R$ ${a.valor.toFixed(2)}\n`)}if(d.totalNoite>0){t+=`🌙 Noite: R$ ${d.totalNoite.toFixed(2)}\n`;d.atrasosNoite.forEach(a=>t+=`  📅 ${a.data} | Atraso ${a.minutosAtraso}min | -R$ ${a.valor.toFixed(2)}\n`)}if(d.totalLanc>0){t+=`🛍️ Lançamentos: R$ ${d.totalLanc.toFixed(2)}\n`;d.lancamentos.forEach(l=>t+=`  🛒 ${l.data} | ${l.descricao} | -R$ ${l.valor.toFixed(2)}\n`)}t+='\n'});const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='descontos_detalhados.txt';a.click()}}
+  document.getElementById('descontosDetalheBtn').onclick=()=>{setViews(false,false,true,false,false);const hoje=now();const trintaDiasAtras=new Date(hoje);trintaDiasAtras.setDate(hoje.getDate()-30);if(!document.getElementById('descDetInicio').value){document.getElementById('descDetInicio').value=trintaDiasAtras.toISOString().split('T')[0];document.getElementById('descDetFim').value=hoje.toISOString().split('T')[0];}filtrarDescontosDetalhados()};
   document.getElementById('descDetFiltrarBtn').onclick=filtrarDescontosDetalhados;
   document.getElementById('descDetSearchInput').addEventListener('input',filtrarDescontosDetalhados);
   document.getElementById('descDetExcel').onclick=()=>exportarDescDet('excel');
   document.getElementById('descDetPdf').onclick=()=>exportarDescDet('pdf');
   document.getElementById('descDetTxt').onclick=()=>exportarDescDet('txt');
 
-  // Fechamento semanal
+  // Fechamento
   function getQuintas(){const dates=[...db.map(r=>new Date(r.dataPresenca||r.dataInscricao)),...lancamentos.map(l=>new Date(l.data))];if(!dates.length)return[new Date()];const min=new Date(Math.min(...dates)),max=new Date(Math.max(...dates));const qs=[];const d=new Date(min);d.setDate(d.getDate()-((d.getDay()+3)%7));while(d<=max){qs.push(new Date(d));d.setDate(d.getDate()+7)}return qs.length?qs:[new Date()]}
   function renderWeekSel(){const qs=getQuintas();if(!qs.length)return;const hoje=now();let q=qs[0];for(const d of qs)if(d<=hoje)q=d;document.getElementById('weekStartDate').value=q.toISOString().split('T')[0];const fim=new Date(q);fim.setDate(fim.getDate()+7);document.getElementById('weekEndDate').value=fim.toISOString().split('T')[0];loadWeek()}
   function loadWeek(){
@@ -620,8 +574,8 @@
     const mapa=new Map();
     db.filter(r=>r.status==='presente'&&new Date(r.dataPresenca)>=inicio&&new Date(r.dataPresenca)<fim).forEach(r=>{const ch=`${r.nome}|${r.turno}`;if(!mapa.has(ch))mapa.set(ch,{nome:r.nome,turno:r.turno,descontoAtraso:0,lancamentos:0});mapa.get(ch).descontoAtraso+=calcDesc(r)});
     lancamentos.filter(l=>{const d=new Date(l.data);return d>=inicio&&d<fim}).forEach(l=>{const ch=`${l.motoboy}|manha`;if(!mapa.has(ch))mapa.set(ch,{nome:l.motoboy,turno:'-',descontoAtraso:0,lancamentos:0});mapa.get(ch).lancamentos+=l.valor});
-    weeklyData=Array.from(mapa.values()).map(d=>({...d,total:d.descontoAtraso+d.lancamentos})).sort((a,b)=>a.nome.localeCompare(b.nome));
-    const c=document.getElementById('weeklyContent');if(!weeklyData.length){c.innerHTML='<div class="empty">Nenhum dado no período.</div>';return}
+    weeklyData=Array.from(mapa.values()).map(d=>({...d,total:d.descontoAtraso+d.lancamentos})).filter(d=>d.total>0).sort((a,b)=>a.nome.localeCompare(b.nome));
+    const c=document.getElementById('weeklyContent');if(!weeklyData.length){c.innerHTML='<div class="empty">Nenhum desconto no período.</div>';return}
     c.innerHTML=`<table class="weekly-table"><tr><th>Nome</th><th>Atrasos</th><th>Lançamentos</th><th>Total</th></tr>${weeklyData.map(d=>`<tr><td>${d.nome}</td><td>R$ ${d.descontoAtraso.toFixed(2)}</td><td>R$ ${d.lancamentos.toFixed(2)}</td><td>R$ ${d.total.toFixed(2)}</td></tr>`).join('')}</table>`;
   }
   document.getElementById('loadWeekBtn').onclick=loadWeek;document.getElementById('weekStartDate').onchange=loadWeek;
@@ -641,15 +595,7 @@
   document.getElementById('dateTabs').onclick=e=>{if(e.target.classList.contains('date-tab'))renderHist(e.target.dataset.dia)};
 
   // Navegação
-  function setViews(m,w,dd,down,h){
-    document.getElementById('mainView').style.display=m?'block':'none';
-    document.getElementById('weeklyView').style.display=w?'block':'none';
-    document.getElementById('descontosDetailView').style.display=dd?'block':'none';
-    document.getElementById('downloadsView').style.display=down?'block':'none';
-    document.getElementById('historyView').style.display=h?'block':'none';
-    document.getElementById('backBtn').style.display=m?'none':'inline-block';
-    document.getElementById('historyBtn').style.display=h?'none':'inline-block';
-  }
+  function setViews(m,w,dd,down,h){document.getElementById('mainView').style.display=m?'block':'none';document.getElementById('weeklyView').style.display=w?'block':'none';document.getElementById('descontosDetailView').style.display=dd?'block':'none';document.getElementById('downloadsView').style.display=down?'block':'none';document.getElementById('historyView').style.display=h?'block':'none';document.getElementById('backBtn').style.display=m?'none':'inline-block'}
   document.getElementById('weeklyBtn').onclick=()=>{setViews(false,true,false,false,false);renderWeekSel()};
   document.getElementById('downloadBtn').onclick=()=>{setViews(false,false,false,true,false);selectedDayDownload=null;renderDownTabs()};
   document.getElementById('historyBtn').onclick=()=>{setViews(false,false,false,false,true);renderHist()};
@@ -663,14 +609,9 @@
   document.getElementById('themeToggle').onclick=()=>{document.body.classList.toggle('light');document.getElementById('themeIcon').textContent=document.body.classList.contains('light')?'light_mode':'dark_mode';localStorage.setItem('tema',document.body.classList.contains('light')?'light':'dark')};
   if(localStorage.getItem('tema')==='light'){document.body.classList.add('light');document.getElementById('themeIcon').textContent='light_mode'}
 
-  // SPLASH (CORRIGIDO - ESTAVA FALTANDO)
-  const msgs=["Ajustando o guidão...","Calibrando os freios...","Abrindo a pista...","Aquecendo o motor...","Sistema pronto!"];
+  const msgs=["Preparando...","Ajustando guidão...","Calibrando freios...","Aquecendo motor...","Sistema pronto!"];
   let idx=0;setInterval(()=>{document.getElementById('splashMsg').textContent=msgs[(idx++)%msgs.length]},800);
-  setTimeout(()=>{
-    document.getElementById('splash').style.display='none';
-    document.getElementById('app').style.display='block';
-    atualizarInterface();
-  },3500);
+  setTimeout(()=>{document.getElementById('splash').style.display='none';document.getElementById('app').style.display='block';atualizarInterface()},3500);
 </script>
 </body>
 </html>
