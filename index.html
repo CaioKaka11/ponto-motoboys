@@ -217,6 +217,10 @@
       color: #000 !important;
     }
 
+    .periodo-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    .periodo-row label { font-size: 14px; font-weight: 500; }
+    .periodo-row input { width: 140px; padding: 8px 12px; background: var(--glass); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 13px; }
+
     @media (max-width: 500px) {
       .header h1 { font-size: 16px; }
       .header-actions button { font-size: 18px; padding: 5px; }
@@ -309,13 +313,28 @@
     <div id="descDetContent" class="results-container"></div>
   </div>
 
-  <!-- DOWNLOADS -->
+  <!-- DOWNLOADS (AGORA COM CALENDÁRIO) -->
   <div id="downloadsView" class="container" style="display:none">
     <div class="list-title">Download de Relatórios</div>
-    <div class="date-tabs" id="downloadDateTabs"></div>
-    <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;"><label>Turno:</label><select id="downloadTurnoSelect" style="color:#000;"><option value="todos">Ambos</option><option value="manha">Manhã</option><option value="noite">Noite</option></select></div>
-    <div class="download-buttons"><button class="btn" id="downloadExcel">Excel</button><button class="btn" id="downloadPdf">PDF</button><button class="btn" id="downloadTxt">TXT</button></div>
-    <p id="downloadInfo" style="color:var(--text2);font-size:12px;"></p>
+    <div class="periodo-row">
+      <label>De:</label>
+      <input type="date" id="downloadDataInicio">
+      <label>Até:</label>
+      <input type="date" id="downloadDataFim">
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;">
+      <label>Turno:</label>
+      <select id="downloadTurnoSelect" style="color:#000;">
+        <option value="todos">Ambos</option>
+        <option value="manha">Manhã</option>
+        <option value="noite">Noite</option>
+      </select>
+    </div>
+    <div class="download-buttons">
+      <button class="btn" id="downloadExcel">Excel</button>
+      <button class="btn" id="downloadPdf">PDF</button>
+      <button class="btn" id="downloadTxt">TXT</button>
+    </div>
   </div>
 
   <!-- HISTÓRICO -->
@@ -367,14 +386,14 @@
   let turno='manha',db=[],motoboys=[],lancamentos=[];
   let motoboysObj = {};
   let ordem='naoChegouPrimeiro',filtroStatus=null;
-  let selectedDayDownload=null,selectedDayHistory=null,weeklyData=[],descDetData=[];
+  let selectedDayHistory=null,weeklyData=[],descDetData=[];
   let renderTimeout;
 
   onValue(registrosRef,snap=>{const data=snap.val()||{};db=Object.entries(data).map(([k,v])=>({...v,_firebaseKey:k}));clearTimeout(renderTimeout);renderTimeout=setTimeout(()=>{atualizarInterface();updateMotoboySelect()}, 80)});
   onValue(motoboysRef,snap=>{if(snap.exists()){motoboysObj=snap.val();motoboys=Object.values(motoboysObj);}else{motoboysObj={};motoboys=[];}updateMotoboySelect();renderMotoboys();});
   onValue(lancamentosRef,snap=>{lancamentos=snap.exists()?Object.entries(snap.val()).map(([k,v])=>({...v,_firebaseKey:k})):[]});
 
-  function atualizarInterface(){renderHoje();renderSummary();if(document.getElementById('historyView').style.display==='block')renderHist(selectedDayHistory);if(document.getElementById('downloadsView').style.display==='block')renderDownTabs()}
+  function atualizarInterface(){renderHoje();renderSummary();if(document.getElementById('historyView').style.display==='block')renderHist(selectedDayHistory);}
   function updateMotoboySelect(){
     const sorted=[...motoboys].sort((a,b)=>a.nome.localeCompare(b.nome));
     document.getElementById('nomeList').innerHTML=sorted.map(m=>`<option value="${m.nome}">`).join('');
@@ -464,74 +483,27 @@
   document.getElementById('presence').onclick=async()=>{const snap=await new Promise(res=>onValue(presenceRef,res,{onlyOnce:true}));const data=snap.val()||{};let h='<table><tr><th>IP</th><th>Navegador</th><th>SO</th></tr>';for(const[,v]of Object.entries(data))h+=`<tr><td>${v.ip||'N/D'}</td><td>${v.browser||'N/D'}</td><td>${v.os||'N/D'}</td></tr>`;document.getElementById('deviceList').innerHTML=h||'Nenhum dispositivo.';document.getElementById('deviceModal').classList.add('active')};
   document.getElementById('closeDeviceModal').onclick=()=>document.getElementById('deviceModal').classList.remove('active');
 
-  // ========== MOTOB OYS (com edição inline) ==========
+  // Motoboys
   document.getElementById('motoboysBtn').onclick=()=>{renderMotoboys();document.getElementById('motoboysModal').classList.add('active')};
   document.getElementById('closeMotoboysModal').onclick=()=>document.getElementById('motoboysModal').classList.remove('active');
-
   function renderMotoboys(){
     const sorted = Object.entries(motoboysObj).sort((a,b)=>a[1].nome.localeCompare(b[1].nome));
-    document.getElementById('listaMotoboys').innerHTML = sorted.map(([key, m]) => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
-        <span class="nome-motoboy" data-key="${key}" style="cursor:pointer;flex:1;" title="Clique para editar">${m.nome}</span>
-        <button class="btn danger removerMotoboy" data-key="${key}" style="padding:4px 10px;font-size:12px;">🗑️</button>
-      </div>
-    `).join('') || '<div class="empty">Nenhum motoboy</div>';
-
-    // Eventos de clique para editar
+    document.getElementById('listaMotoboys').innerHTML = sorted.map(([key, m]) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);"><span class="nome-motoboy" data-key="${key}" style="cursor:pointer;flex:1;" title="Clique para editar">${m.nome}</span><button class="btn danger removerMotoboy" data-key="${key}" style="padding:4px 10px;font-size:12px;">🗑️</button></div>`).join('') || '<div class="empty">Nenhum motoboy</div>';
     document.querySelectorAll('.nome-motoboy').forEach(span => {
       span.addEventListener('click', function() {
-        const key = this.dataset.key;
-        const currentName = this.textContent;
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = currentName;
+        const key = this.dataset.key; const currentName = this.textContent;
+        const input = document.createElement('input'); input.type = 'text'; input.value = currentName;
         input.style.cssText = 'width:100%;padding:4px;background:var(--glass);border:1px solid var(--border);border-radius:6px;color:var(--text);';
-        this.replaceWith(input);
-        input.focus();
-        input.select();
-
-        const salvarEdicao = async () => {
-          const novoNome = input.value.trim();
-          if (novoNome && novoNome !== currentName) {
-            await update(ref(database, `motoboys/${key}`), { nome: novoNome });
-          } else {
-            // Reverte para o span original
-            renderMotoboys();
-          }
-        };
-
-        input.addEventListener('blur', salvarEdicao);
-        input.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            input.blur();
-          }
-        });
+        this.replaceWith(input); input.focus(); input.select();
+        const salvarEdicao = async () => { const novoNome = input.value.trim(); if (novoNome && novoNome !== currentName) { await update(ref(database, `motoboys/${key}`), { nome: novoNome }); } else { renderMotoboys(); } };
+        input.addEventListener('blur', salvarEdicao); input.addEventListener('keypress', (e) => { if (e.key === 'Enter') input.blur(); });
       });
     });
-
-    // Remover
-    document.querySelectorAll('.removerMotoboy').forEach(btn => {
-      btn.onclick = async () => {
-        if (confirm('Remover motoboy?')) {
-          await remove(ref(database, `motoboys/${btn.dataset.key}`));
-        }
-      };
-    });
+    document.querySelectorAll('.removerMotoboy').forEach(btn => { btn.onclick = async () => { if (confirm('Remover motoboy?')) await remove(ref(database, `motoboys/${btn.dataset.key}`)); }; });
   }
-
-  // Adicionar motoboy (com Enter)
   document.getElementById('addMotoboyBtn').onclick = adicionarMotoboy;
-  document.getElementById('novoMotoboyNome').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') adicionarMotoboy();
-  });
-
-  async function adicionarMotoboy() {
-    const nome = document.getElementById('novoMotoboyNome').value.trim();
-    if (!nome) return alert('Digite um nome');
-    if (motoboys.some(m => m.nome.toLowerCase() === nome.toLowerCase())) return alert('Já cadastrado');
-    await push(motoboysRef, { nome });
-    document.getElementById('novoMotoboyNome').value = '';
-  }
+  document.getElementById('novoMotoboyNome').addEventListener('keypress', (e) => { if (e.key === 'Enter') adicionarMotoboy(); });
+  async function adicionarMotoboy() { const nome = document.getElementById('novoMotoboyNome').value.trim(); if (!nome) return alert('Digite um nome'); if (motoboys.some(m => m.nome.toLowerCase() === nome.toLowerCase())) return alert('Já cadastrado'); await push(motoboysRef, { nome }); document.getElementById('novoMotoboyNome').value = ''; }
 
   // Lançamentos
   document.getElementById('lancamentosBtn').onclick=()=>{updateMotoboySelect();document.getElementById('lancamentoData').value=now().toISOString().split('T')[0];renderLanc();document.getElementById('lancamentosModal').classList.add('active')};
@@ -545,15 +517,13 @@
     const fim=new Date(document.getElementById('descDetFim').value+'T23:59:59-03:00');
     const termoBusca=document.getElementById('descDetSearchInput').value.trim().toLowerCase();
     const mapa=new Map();
-    db.filter(r=>r.status==='presente'&&new Date(r.dataPresenca)>=inicio&&new Date(r.dataPresenca)<=fim)
-      .forEach(r=>{const nome=r.nome;if(termoBusca&&!nome.toLowerCase().includes(termoBusca))return;if(!mapa.has(nome))mapa.set(nome,{nome,atrasosManha:[],atrasosNoite:[],lancamentos:[],totalManha:0,totalNoite:0,totalLanc:0});const e=mapa.get(nome);const desc=calcDesc(r);const mins=calcMinutosAtraso(r);if(r.turno==='manha'){e.atrasosManha.push({data:fmt(r.dataPresenca),minutosAtraso:mins,valor:desc});e.totalManha+=desc}else{e.atrasosNoite.push({data:fmt(r.dataPresenca),minutosAtraso:mins,valor:desc});e.totalNoite+=desc}});
+    db.filter(r=>r.status==='presente'&&new Date(r.dataPresenca)>=inicio&&new Date(r.dataPresenca)<=fim).forEach(r=>{const nome=r.nome;if(termoBusca&&!nome.toLowerCase().includes(termoBusca))return;if(!mapa.has(nome))mapa.set(nome,{nome,atrasosManha:[],atrasosNoite:[],lancamentos:[],totalManha:0,totalNoite:0,totalLanc:0});const e=mapa.get(nome);const desc=calcDesc(r);const mins=calcMinutosAtraso(r);if(r.turno==='manha'){e.atrasosManha.push({data:fmt(r.dataPresenca),minutosAtraso:mins,valor:desc});e.totalManha+=desc}else{e.atrasosNoite.push({data:fmt(r.dataPresenca),minutosAtraso:mins,valor:desc});e.totalNoite+=desc}});
     lancamentos.filter(l=>{const d=new Date(l.data);return d>=inicio&&d<=fim&&(!termoBusca||l.motoboy.toLowerCase().includes(termoBusca))}).forEach(l=>{const nome=l.motoboy;if(!mapa.has(nome))mapa.set(nome,{nome,atrasosManha:[],atrasosNoite:[],lancamentos:[],totalManha:0,totalNoite:0,totalLanc:0});const e=mapa.get(nome);e.lancamentos.push({data:l.data,descricao:l.descricao||'Item',valor:l.valor});e.totalLanc+=l.valor});
     descDetData=Array.from(mapa.values()).filter(d=>(d.totalManha+d.totalNoite+d.totalLanc)>0).sort((a,b)=>a.nome.localeCompare(b.nome));
     renderDescDetContent();
   }
   function renderDescDetContent(){
-    const c=document.getElementById('descDetContent');
-    if(!descDetData.length){c.innerHTML='<div class="empty">Nenhum desconto encontrado.</div>';return}
+    const c=document.getElementById('descDetContent');if(!descDetData.length){c.innerHTML='<div class="empty">Nenhum desconto encontrado.</div>';return}
     c.innerHTML=descDetData.map(d=>{const total=d.totalManha+d.totalNoite+d.totalLanc;let detalhes='';if(d.totalManha>0){detalhes+=`<div style="margin-top:4px;"><strong>☀️ Manhã (Total: R$ ${d.totalManha.toFixed(2)})</strong></div>`;detalhes+=d.atrasosManha.map(a=>`📅 ${a.data} | Atraso ${a.minutosAtraso}min | -R$ ${a.valor.toFixed(2)}`).join('<br>')}if(d.totalNoite>0){detalhes+=`<div style="margin-top:4px;"><strong>🌙 Noite (Total: R$ ${d.totalNoite.toFixed(2)})</strong></div>`;detalhes+=d.atrasosNoite.map(a=>`📅 ${a.data} | Atraso ${a.minutosAtraso}min | -R$ ${a.valor.toFixed(2)}`).join('<br>')}if(d.totalLanc>0){detalhes+=`<div style="margin-top:4px;"><strong>🛍️ Lançamentos (Total: R$ ${d.totalLanc.toFixed(2)})</strong></div>`;detalhes+=d.lancamentos.map(l=>`🛒 ${l.data} | ${l.descricao} | -R$ ${l.valor.toFixed(2)}`).join('<br>')}
       return`<div class="detail-card"><div class="header-row"><span class="motoboy-name">👤 ${d.nome}</span><span class="total">Total: R$ ${total.toFixed(2)}</span></div><div class="detail-details">${detalhes}</div></div>`}).join('');
   }
@@ -561,9 +531,7 @@
   document.getElementById('descontosDetalheBtn').onclick=()=>{setViews(false,false,true,false,false);const hoje=now();const trintaDiasAtras=new Date(hoje);trintaDiasAtras.setDate(hoje.getDate()-30);if(!document.getElementById('descDetInicio').value){document.getElementById('descDetInicio').value=trintaDiasAtras.toISOString().split('T')[0];document.getElementById('descDetFim').value=hoje.toISOString().split('T')[0];}filtrarDescontosDetalhados()};
   document.getElementById('descDetFiltrarBtn').onclick=filtrarDescontosDetalhados;
   document.getElementById('descDetSearchInput').addEventListener('input',filtrarDescontosDetalhados);
-  document.getElementById('descDetExcel').onclick=()=>exportarDescDet('excel');
-  document.getElementById('descDetPdf').onclick=()=>exportarDescDet('pdf');
-  document.getElementById('descDetTxt').onclick=()=>exportarDescDet('txt');
+  document.getElementById('descDetExcel').onclick=()=>exportarDescDet('excel');document.getElementById('descDetPdf').onclick=()=>exportarDescDet('pdf');document.getElementById('descDetTxt').onclick=()=>exportarDescDet('txt');
 
   // Fechamento
   function getQuintas(){const dates=[...db.map(r=>new Date(r.dataPresenca||r.dataInscricao)),...lancamentos.map(l=>new Date(l.data))];if(!dates.length)return[new Date()];const min=new Date(Math.min(...dates)),max=new Date(Math.max(...dates));const qs=[];const d=new Date(min);d.setDate(d.getDate()-((d.getDay()+3)%7));while(d<=max){qs.push(new Date(d));d.setDate(d.getDate()+7)}return qs.length?qs:[new Date()]}
@@ -582,22 +550,66 @@
   function expSemanal(arr,f){if(!arr.length)return alert('Nenhum dado.');if(f==='excel'){const ws=XLSX.utils.json_to_sheet(arr.map(d=>({Nome:d.nome,Atrasos:d.descontoAtraso.toFixed(2),Lançamentos:d.lancamentos.toFixed(2),Total:d.total.toFixed(2)})));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Fechamento');XLSX.writeFile(wb,'fechamento.xlsx')}else if(f==='pdf'){const{jsPDF}=window.jspdf;const doc=new jsPDF();doc.autoTable({head:[['Nome','Atrasos','Lançamentos','Total']],body:arr.map(d=>[d.nome,`R$ ${d.descontoAtraso.toFixed(2)}`,`R$ ${d.lancamentos.toFixed(2)}`,`R$ ${d.total.toFixed(2)}`])});doc.save('fechamento.pdf')}else if(f==='txt'){let t='Fechamento\n\n';arr.forEach(d=>t+=`${d.nome} - Atrasos: R$ ${d.descontoAtraso.toFixed(2)} | Lançamentos: R$ ${d.lancamentos.toFixed(2)} | Total: R$ ${d.total.toFixed(2)}\n`);const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fechamento.txt';a.click()}}
   document.getElementById('weeklyExcel').onclick=()=>expSemanal(weeklyData,'excel');document.getElementById('weeklyPdf').onclick=()=>expSemanal(weeklyData,'pdf');document.getElementById('weeklyTxt').onclick=()=>expSemanal(weeklyData,'txt');
 
-  // Downloads diários
-  function renderDownTabs(){const dias=[...new Set(db.map(r=>new Date(r.dataInscricao||r.dataHora).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})))].sort((a,b)=>{const[da,ma,aa]=a.split('/');const[db,mb,ab]=b.split('/');return new Date(aa,ma-1,da)<new Date(ab,mb-1,db)?1:-1});const tabs=document.getElementById('downloadDateTabs');tabs.innerHTML=dias.map(d=>`<span class="date-tab" data-dia="${d}">${d}</span>`).join('');if(!selectedDayDownload&&dias.length)selectedDayDownload=dias[0];tabs.querySelectorAll('.date-tab').forEach(t=>t.classList.toggle('active',t.dataset.dia===selectedDayDownload));document.getElementById('downloadInfo').textContent=selectedDayDownload?`Dia selecionado: ${selectedDayDownload}`:''}
-  document.getElementById('downloadDateTabs').onclick=e=>{if(e.target.classList.contains('date-tab')){selectedDayDownload=e.target.dataset.dia;renderDownTabs()}}
-  function getRegDia(dia,turnoFiltro='todos'){return db.filter(r=>{const d=new Date(r.dataInscricao||r.dataHora);return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})===dia&&r.status!=='removido'&&(turnoFiltro==='todos'||r.turno===turnoFiltro)})}
-  function exportar(arr,f){if(!arr.length)return alert('Nenhum registro.');const dados=arr.map(r=>({Nome:r.nome,Turno:r.turno,Status:r.status==='presente'?'Chegou':r.status==='ausente'?'Não chegou':r.status==='desistiu'?'Desistiu':'Inscrito','Data Inscrição':fmt(r.dataInscricao).split(' ')[0],'Hora Chegada':r.dataPresenca?fmt(r.dataPresenca).split(' ')[1]:'-',Desconto:r.status==='presente'?calcDesc(r).toFixed(2):'0.00'}));if(f==='excel'){const ws=XLSX.utils.json_to_sheet(dados),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Presença');XLSX.writeFile(wb,'presenca.xlsx')}else if(f==='pdf'){const{jsPDF}=window.jspdf;const doc=new jsPDF();doc.autoTable({head:[['Nome','Turno','Status','Data','Chegada','Desconto']],body:dados.map(d=>[d.Nome,d.Turno,d.Status,d['Data Inscrição'],d['Hora Chegada'],d.Desconto])});doc.save('presenca.pdf')}else if(f==='txt'){let t='Lista de Presença\n\n';arr.forEach((r,i)=>{const st=r.status==='presente'?'✅':r.status==='ausente'?'❌':r.status==='desistiu'?'🚫':'⏳';t+=`${i+1} ${r.nome} ${st}`;if(r.status==='presente'){t+=` ${fmt(r.dataPresenca).split(' ')[1]}`;const d=calcDesc(r);if(d>0)t+=` (R$ ${d.toFixed(2)})`}t+='\n'});const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lista.txt';a.click()}}
-  function downloadDoDia(f){exportar(getRegDia(selectedDayDownload,document.getElementById('downloadTurnoSelect').value),f)}
-  document.getElementById('downloadExcel').onclick=()=>downloadDoDia('excel');document.getElementById('downloadPdf').onclick=()=>downloadDoDia('pdf');document.getElementById('downloadTxt').onclick=()=>downloadDoDia('txt');
+  // DOWNLOADS POR PERÍODO (NOVA VERSÃO COM CALENDÁRIO)
+  function getRegPeriodo(inicio,fim,turnoFiltro='todos'){
+    const di=new Date(inicio+'T00:00:00-03:00');
+    const df=new Date(fim+'T23:59:59-03:00');
+    return db.filter(r=>{
+      const d=new Date(r.dataInscricao||r.dataHora);
+      return d>=di&&d<=df&&r.status!=='removido'&&(turnoFiltro==='todos'||r.turno===turnoFiltro);
+    });
+  }
+  function exportar(arr,f){
+    if(!arr.length)return alert('Nenhum registro no período.');
+    const dados=arr.map(r=>({
+      Nome:r.nome,Turno:r.turno,
+      Status:r.status==='presente'?'Chegou':r.status==='ausente'?'Não chegou':r.status==='desistiu'?'Desistiu':'Inscrito',
+      'Data Inscrição':fmt(r.dataInscricao).split(' ')[0],
+      'Hora Chegada':r.dataPresenca?fmt(r.dataPresenca).split(' ')[1]:'-',
+      Desconto:r.status==='presente'?calcDesc(r).toFixed(2):'0.00'
+    }));
+    if(f==='excel'){
+      const ws=XLSX.utils.json_to_sheet(dados),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Presença');XLSX.writeFile(wb,'presenca_periodo.xlsx');
+    }else if(f==='pdf'){
+      const{jsPDF}=window.jspdf;const doc=new jsPDF();
+      doc.autoTable({head:[['Nome','Turno','Status','Data','Chegada','Desconto']],body:dados.map(d=>[d.Nome,d.Turno,d.Status,d['Data Inscrição'],d['Hora Chegada'],d.Desconto])});
+      doc.save('presenca_periodo.pdf');
+    }else if(f==='txt'){
+      let t='Relatório de Presença\n\n';arr.forEach((r,i)=>{const st=r.status==='presente'?'✅':r.status==='ausente'?'❌':r.status==='desistiu'?'🚫':'⏳';t+=`${i+1} ${r.nome} ${st}`;if(r.status==='presente'){t+=` ${fmt(r.dataPresenca).split(' ')[1]}`;const d=calcDesc(r);if(d>0)t+=` (R$ ${d.toFixed(2)})`}t+='\n'});
+      const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='presenca_periodo.txt';a.click();
+    }
+  }
+  function downloadPeriodo(formato){
+    const inicio=document.getElementById('downloadDataInicio').value;
+    const fim=document.getElementById('downloadDataFim').value;
+    if(!inicio||!fim)return alert('Selecione as datas inicial e final.');
+    const turnoFiltro=document.getElementById('downloadTurnoSelect').value;
+    exportar(getRegPeriodo(inicio,fim,turnoFiltro),formato);
+  }
+  document.getElementById('downloadExcel').onclick=()=>downloadPeriodo('excel');
+  document.getElementById('downloadPdf').onclick=()=>downloadPeriodo('pdf');
+  document.getElementById('downloadTxt').onclick=()=>downloadPeriodo('txt');
 
   // Histórico
   function renderHist(diaSel=null){const dias=[...new Set(db.filter(r=>r.status!=='removido').map(r=>new Date(r.dataInscricao||r.dataHora).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})))].sort((a,b)=>{const[da,ma,aa]=a.split('/');const[db,mb,ab]=b.split('/');return new Date(aa,ma-1,da)<new Date(ab,mb-1,db)?1:-1});const tabs=document.getElementById('dateTabs');tabs.innerHTML=dias.map(d=>`<span class="date-tab" data-dia="${d}">${d}</span>`).join('');if(!diaSel&&dias.length)diaSel=dias[0];selectedDayHistory=diaSel;tabs.querySelectorAll('.date-tab').forEach(t=>t.classList.toggle('active',t.dataset.dia===selectedDayHistory));const filt=selectedDayHistory?db.filter(r=>{const d=new Date(r.dataInscricao||r.dataHora);return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})===selectedDayHistory&&r.status!=='removido'}):db.filter(r=>r.status!=='removido');document.getElementById('historyDayList').innerHTML=filt.length?filt.map(r=>{let st=r.status==='presente'?'✅':r.status==='ausente'?'❌':r.status==='desistiu'?'🚫':'⏳';const desc=r.status==='presente'?calcDesc(r):0;return`<div class="card"><div class="info"><span class="material-icons">${r.status==='presente'?'check_circle':r.status==='ausente'?'cancel':'motorcycle'}</span><div><div class="name">${r.nome} ${st}</div><div class="datetime">Insc: ${fmt(r.dataInscricao)}</div>${r.status==='presente'?`<div class="datetime">Chegada: ${fmt(r.dataPresenca)}</div>`:''}${desc>0?`<div class="discount">Desconto R$ ${desc.toFixed(2)}</div>`:''}</div></div></div>`}).join(''):'<div class="empty">Nenhum registro</div>';}
   document.getElementById('dateTabs').onclick=e=>{if(e.target.classList.contains('date-tab'))renderHist(e.target.dataset.dia)};
 
   // Navegação
-  function setViews(m,w,dd,down,h){document.getElementById('mainView').style.display=m?'block':'none';document.getElementById('weeklyView').style.display=w?'block':'none';document.getElementById('descontosDetailView').style.display=dd?'block':'none';document.getElementById('downloadsView').style.display=down?'block':'none';document.getElementById('historyView').style.display=h?'block':'none';document.getElementById('backBtn').style.display=m?'none':'inline-block'}
+  function setViews(m,w,dd,down,h){
+    document.getElementById('mainView').style.display=m?'block':'none';
+    document.getElementById('weeklyView').style.display=w?'block':'none';
+    document.getElementById('descontosDetailView').style.display=dd?'block':'none';
+    document.getElementById('downloadsView').style.display=down?'block':'none';
+    document.getElementById('historyView').style.display=h?'block':'none';
+    document.getElementById('backBtn').style.display=m?'none':'inline-block';
+    if(down){
+      const hoje=now();const seteDiasAtras=new Date(hoje);seteDiasAtras.setDate(hoje.getDate()-7);
+      document.getElementById('downloadDataInicio').value=seteDiasAtras.toISOString().split('T')[0];
+      document.getElementById('downloadDataFim').value=hoje.toISOString().split('T')[0];
+    }
+  }
   document.getElementById('weeklyBtn').onclick=()=>{setViews(false,true,false,false,false);renderWeekSel()};
-  document.getElementById('downloadBtn').onclick=()=>{setViews(false,false,false,true,false);selectedDayDownload=null;renderDownTabs()};
+  document.getElementById('downloadBtn').onclick=()=>{setViews(false,false,false,true,false)};
   document.getElementById('historyBtn').onclick=()=>{setViews(false,false,false,false,true);renderHist()};
   document.getElementById('backBtn').onclick=()=>setViews(true,false,false,false,false);
 
