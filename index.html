@@ -13,37 +13,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <style>
     :root {
-      --bg: #0a0a0f;
-      --surface: rgba(22, 22, 30, 0.9);
-      --glass: rgba(255, 255, 255, 0.04);
-      --border: rgba(255, 255, 255, 0.08);
-      --text: #f0f0f5;
-      --text2: #9898a8;
-      --accent: #00e676;
-      --teal: #00bcd4;
-      --danger: #ff5252;
-      --warning: #ffab40;
+      --bg: #0a0a0f; --surface: rgba(22, 22, 30, 0.9); --glass: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08); --text: #f0f0f5; --text2: #9898a8;
+      --accent: #00e676; --teal: #00bcd4; --danger: #ff5252; --warning: #ffab40;
     }
     body.light {
-      --bg: #f5f7fa;
-      --surface: rgba(255, 255, 255, 0.95);
-      --glass: rgba(0, 0, 0, 0.03);
-      --border: rgba(0, 0, 0, 0.08);
-      --text: #1a1a2e;
-      --text2: #555;
-      --accent: #00c853;
-      --teal: #0097a7;
-      --danger: #d32f2f;
-      --warning: #f57c00;
+      --bg: #f5f7fa; --surface: rgba(255, 255, 255, 0.95); --glass: rgba(0, 0, 0, 0.03);
+      --border: rgba(0, 0, 0, 0.08); --text: #1a1a2e; --text2: #555;
+      --accent: #00c853; --teal: #0097a7; --danger: #d32f2f; --warning: #f57c00;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      min-height: 100vh;
-      transition: background 0.3s, color 0.3s;
-      -webkit-tap-highlight-color: transparent;
+      background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh; transition: background 0.3s, color 0.3s; -webkit-tap-highlight-color: transparent;
     }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -61,12 +43,10 @@
 
     #app { display: none; }
 
-    /* HEADER */
     .header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 10px 18px; background: var(--surface); border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 50;
-      flex-wrap: wrap; gap: 8px;
+      backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 50; flex-wrap: wrap; gap: 8px;
     }
     .header h1 { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
     .header-actions { display: flex; gap: 4px; align-items: center; }
@@ -83,15 +63,12 @@
     }
     .presence-dot { width: 8px; height: 8px; border-radius: 50%; background: #4caf50; }
 
-    /* CONTAINER */
     .container { padding: 16px; max-width: 700px; margin: 0 auto; animation: fadeUp 0.35s ease; }
 
-    /* TABS */
     .tab-bar { display: flex; background: var(--surface); border-radius: 14px; padding: 4px; margin-bottom: 18px; gap: 4px; }
     .tab { flex: 1; text-align: center; padding: 10px; border-radius: 11px; font-weight: 600; cursor: pointer; transition: 0.25s; font-size: 14px; color: var(--text2); }
     .tab.active { background: var(--accent); color: #000; }
 
-    /* INFO ROW */
     .shift-info { background: var(--surface); border-radius: 14px; padding: 12px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
     .input-row { display: flex; gap: 8px; margin-bottom: 16px; }
     .input-row input {
@@ -100,7 +77,6 @@
     }
     .input-row input:focus { border-color: var(--accent); }
 
-    /* BUTTONS */
     .btn {
       background: var(--accent); color: #000; border: none; padding: 12px 20px;
       border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer;
@@ -110,7 +86,6 @@
     .btn.danger { background: var(--danger); color: #fff; }
     .btn.small { padding: 8px 14px; font-size: 12px; }
 
-    /* SUMMARY CARDS */
     .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; margin-bottom: 18px; }
     .summary-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
@@ -121,7 +96,6 @@
     .summary-card .number { font-size: 22px; font-weight: 700; }
     .summary-card .label { font-size: 10px; color: var(--text2); margin-top: 2px; }
 
-    /* TOOLBAR */
     .toolbar { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; }
     .search-bar { flex: 1; position: relative; }
     .search-bar input {
@@ -147,7 +121,6 @@
     .order-dropdown div:hover { background: rgba(255,255,255,0.06); }
     .order-dropdown div.active { color: var(--accent); font-weight: 600; background: rgba(0,230,118,0.08); }
 
-    /* CARDS */
     .list-title { font-weight: 600; margin-bottom: 8px; color: var(--teal); font-size: 15px; }
     .card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
@@ -166,22 +139,18 @@
     .admin-actions button.remover { border-color: var(--danger); color: var(--danger); }
     .admin-actions button.remover:hover { background: rgba(255,82,82,0.12); }
 
-    /* MODALS */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
     .modal.active { display: flex; animation: fadeIn 0.2s ease; }
     .modal-content { background: var(--surface); padding: 24px; border-radius: 18px; border: 1px solid var(--border); max-width: 440px; width: 92%; max-height: 80vh; overflow-y: auto; }
     .close-modal { position: absolute; top: 10px; right: 16px; font-size: 22px; cursor: pointer; color: var(--text2); }
 
-    /* TABLES */
     .weekly-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
     .weekly-table th { background: var(--glass); padding: 8px 10px; text-align: left; color: var(--teal); font-weight: 600; }
     .weekly-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
 
-    /* DOWNLOADS */
     .download-buttons { display: flex; gap: 8px; margin-bottom: 14px; }
     .download-buttons .btn { flex: 1; justify-content: center; padding: 10px; font-size: 13px; }
 
-    /* DESCONTOS DETAIL */
     .filters-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
     .filters-row input { width: 130px; padding: 8px 12px; background: var(--glass); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 13px; }
     .filters-row .search-motoboy { flex: 1; min-width: 180px; }
@@ -194,32 +163,29 @@
 
     .empty { text-align: center; padding: 40px; color: var(--text2); }
 
-    /* CORREÇÕES DE COR DOS SELECTS */
     select, select option { color: #000 !important; }
     body.light select, body.light select option { color: #000 !important; }
-
-    /* EXCEÇÃO PARA O SELECT DE LANÇAMENTOS NO TEMA ESCURO */
-    #lancamentoMotoboy {
-      background-color: var(--surface) !important;
-      color: var(--text) !important;
-    }
-    #lancamentoMotoboy option {
-      background-color: var(--surface) !important;
-      color: var(--text) !important;
-    }
-    /* TEMA CLARO – VOLTA AO PADRÃO */
-    body.light #lancamentoMotoboy {
-      background-color: #fff !important;
-      color: #000 !important;
-    }
-    body.light #lancamentoMotoboy option {
-      background-color: #fff !important;
-      color: #000 !important;
-    }
+    #lancamentoMotoboy { background-color: var(--surface) !important; color: var(--text) !important; }
+    #lancamentoMotoboy option { background-color: var(--surface) !important; color: var(--text) !important; }
+    body.light #lancamentoMotoboy { background-color: #fff !important; color: #000 !important; }
+    body.light #lancamentoMotoboy option { background-color: #fff !important; color: #000 !important; }
 
     .periodo-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
     .periodo-row label { font-size: 14px; font-weight: 500; }
     .periodo-row input { width: 140px; padding: 8px 12px; background: var(--glass); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 13px; }
+
+    .quick-import {
+      margin-top: 8px; margin-bottom: 16px; padding: 12px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    }
+    .quick-import textarea {
+      width: 100%; height: 80px; padding: 10px; background: var(--glass);
+      border: 1px solid var(--border); border-radius: 10px; color: var(--text);
+      font-size: 13px; font-family: inherit; resize: vertical; margin-bottom: 8px;
+    }
+    .quick-import textarea:focus { border-color: var(--accent); outline: none; }
+    .quick-import .btn { width: 100%; justify-content: center; }
+    .quick-import .result-msg { font-size: 12px; color: var(--accent); margin-top: 6px; text-align: center; display: none; }
 
     @media (max-width: 500px) {
       .header h1 { font-size: 16px; }
@@ -253,13 +219,13 @@
     </div>
   </div>
 
-  <!-- Modais -->
+  <!-- Modais (mantidos) -->
   <div id="deviceModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeDeviceModal">&times;</span><h2>Dispositivos</h2><div id="deviceList"></div></div></div>
   <div id="configModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeConfigModal">&times;</span><h2>Limite de Vagas</h2><div class="config-row"><label>Manhã</label><input type="number" id="limiteManha"></div><div class="config-row"><label>Noite</label><input type="number" id="limiteNoite"></div><button class="btn" id="salvarConfig">Salvar</button></div></div>
   <div id="motoboysModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeMotoboysModal">&times;</span><h2>Cadastro de Motoboys</h2><div class="input-row"><input type="text" id="novoMotoboyNome" placeholder="Nome completo"><button class="btn" id="addMotoboyBtn">Adicionar</button></div><div id="listaMotoboys" style="max-height:300px;overflow-y:auto;"></div></div></div>
   <div id="lancamentosModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeLancamentosModal">&times;</span><h2>Lançamentos</h2><select id="lancamentoMotoboy" style="width:100%;padding:10px;margin-bottom:10px;background:var(--glass);border:1px solid var(--border);border-radius:10px;"></select><div class="input-row"><input type="number" id="lancamentoValor" placeholder="Valor R$" step="0.01"><input type="date" id="lancamentoData"></div><input type="text" id="lancamentoDescricao" placeholder="Descrição" style="width:100%;padding:10px;margin-bottom:10px;background:var(--glass);border:1px solid var(--border);border-radius:10px;color:var(--text);"><button class="btn" id="salvarLancamento">Registrar</button><div id="listaLancamentos" style="margin-top:14px;max-height:200px;overflow-y:auto;"></div></div></div>
 
-  <!-- TELA PRINCIPAL -->
+  <!-- TELA PRINCIPAL (com importação rápida) -->
   <div id="mainView" class="container">
     <div class="tab-bar"><div class="tab active" id="tabManha">☀️ Manhã</div><div class="tab" id="tabNoite">🌙 Noite</div></div>
     <div class="shift-info"><span>Turno: <strong id="turnoLabel">Manhã</strong></span><span>Vagas: <strong id="vagasRestantes">0/16</strong></span></div>
@@ -268,6 +234,14 @@
       <datalist id="nomeList"></datalist>
       <button class="btn" id="inscreverBtn"><span class="material-icons">how_to_reg</span> Inscrever</button>
     </div>
+
+    <!-- ÁREA DE IMPORTAÇÃO RÁPIDA -->
+    <div class="quick-import">
+      <textarea id="quickImportTextarea" placeholder="Cole a lista do WhatsApp aqui...&#10;Ex: 1 Joel&#10;2 Iago&#10;3 Eduardo Freitas"></textarea>
+      <button class="btn" id="quickImportBtn"><span class="material-icons">file_download</span> Importar e Inscrever</button>
+      <div class="result-msg" id="quickImportResult"></div>
+    </div>
+
     <div class="summary-cards" id="summaryContainer"></div>
     <div class="toolbar">
       <div class="search-bar"><span class="material-icons">search</span><input type="text" id="searchInput" placeholder="Pesquisar..."></div>
@@ -313,28 +287,14 @@
     <div id="descDetContent" class="results-container"></div>
   </div>
 
-  <!-- DOWNLOADS (AGORA COM CALENDÁRIO) -->
+  <!-- DOWNLOADS -->
   <div id="downloadsView" class="container" style="display:none">
     <div class="list-title">Download de Relatórios</div>
     <div class="periodo-row">
-      <label>De:</label>
-      <input type="date" id="downloadDataInicio">
-      <label>Até:</label>
-      <input type="date" id="downloadDataFim">
+      <label>De:</label><input type="date" id="downloadDataInicio"><label>Até:</label><input type="date" id="downloadDataFim">
     </div>
-    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;">
-      <label>Turno:</label>
-      <select id="downloadTurnoSelect" style="color:#000;">
-        <option value="todos">Ambos</option>
-        <option value="manha">Manhã</option>
-        <option value="noite">Noite</option>
-      </select>
-    </div>
-    <div class="download-buttons">
-      <button class="btn" id="downloadExcel">Excel</button>
-      <button class="btn" id="downloadPdf">PDF</button>
-      <button class="btn" id="downloadTxt">TXT</button>
-    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;"><label>Turno:</label><select id="downloadTurnoSelect" style="color:#000;"><option value="todos">Ambos</option><option value="manha">Manhã</option><option value="noite">Noite</option></select></div>
+    <div class="download-buttons"><button class="btn" id="downloadExcel">Excel</button><button class="btn" id="downloadPdf">PDF</button><button class="btn" id="downloadTxt">TXT</button></div>
   </div>
 
   <!-- HISTÓRICO -->
@@ -361,7 +321,6 @@
   const motoboysRef = ref(database, 'motoboys');
   const lancamentosRef = ref(database, 'lancamentos');
 
-  // Presença
   const userId = Date.now().toString(36)+Math.random().toString(36).substr(2);
   const userPresenceRef = ref(database, `presence/${userId}`);
   (async()=>{
@@ -397,8 +356,7 @@
   function updateMotoboySelect(){
     const sorted=[...motoboys].sort((a,b)=>a.nome.localeCompare(b.nome));
     document.getElementById('nomeList').innerHTML=sorted.map(m=>`<option value="${m.nome}">`).join('');
-    const l=document.getElementById('lancamentoMotoboy');
-    if(l)l.innerHTML=sorted.map(m=>`<option value="${m.nome}">${m.nome}</option>`).join('');
+    const l=document.getElementById('lancamentoMotoboy');if(l)l.innerHTML=sorted.map(m=>`<option value="${m.nome}">${m.nome}</option>`).join('');
   }
 
   const now=()=>new Date(new Date().toLocaleString('en-US',{timeZone:'America/Sao_Paulo'}));
@@ -436,6 +394,61 @@
   }
   document.getElementById('inscreverBtn').onclick=inscrever;
   document.getElementById('motoboyInput').addEventListener('keypress',e=>{if(e.key==='Enter')inscrever()});
+
+  // ========== IMPORTAÇÃO RÁPIDA CORRIGIDA ==========
+  async function quickImport() {
+    const texto = document.getElementById('quickImportTextarea').value.trim();
+    if (!texto) return alert('Cole a lista de nomes primeiro.');
+
+    // Extração robusta: divide por quebras de linha, vírgulas, ponto e vírgula
+    const partes = texto.split(/[\n\r,;]+/).filter(p => p.trim());
+    let nomesExtraidos = [];
+
+    for (const parte of partes) {
+      let nome = parte.trim();
+      // Remove numeração inicial (ex: "1.", "1)", "1-", "1 ", "1º")
+      nome = nome.replace(/^\s*\d+\s*[.)\-\s]*\s*/, '').trim();
+      // Se ainda houver dígitos no meio, tenta separar por padrão "número + espaço"
+      if (/\d/.test(nome)) {
+        const subNomes = nome.split(/\s+(?=\d+\s+)/).map(s => s.replace(/^\s*\d+\s*[.)\-\s]*\s*/, '').trim()).filter(s => s.length > 0 && !/^\d+$/.test(s));
+        nomesExtraidos.push(...subNomes);
+      } else {
+        if (nome.length > 0 && !/^\d+$/.test(nome)) nomesExtraidos.push(nome);
+      }
+    }
+
+    // Remove duplicatas e filtra vazios
+    const nomesUnicos = [...new Set(nomesExtraidos.filter(nome => nome.length > 0))];
+
+    if (!nomesUnicos.length) return alert('Nenhum nome válido encontrado.');
+
+    let adicionados = 0, ignorados = 0;
+    const inscritosAtuais = getInscritos();
+
+    for (const nome of nomesUnicos) {
+      if (inscritosAtuais.some(r => r.nome.toLowerCase() === nome.toLowerCase() && r.turno === turno)) {
+        ignorados++;
+        continue;
+      }
+      if (getInscritos().length >= limites[turno]) {
+        alert(`Limite de vagas atingido (${limites[turno]}). Apenas ${adicionados} nome(s) foram importados.`);
+        break;
+      }
+      await push(registrosRef, { nome, turno, dataInscricao: now().toISOString(), status: 'inscrito', dataPresenca: null });
+      adicionados++;
+    }
+
+    const msg = document.getElementById('quickImportResult');
+    msg.style.display = 'block';
+    msg.textContent = `✅ ${adicionados} inscrito(s)${ignorados > 0 ? `, ${ignorados} já existente(s)` : ''}.`;
+    document.getElementById('quickImportTextarea').value = '';
+    setTimeout(() => { msg.style.display = 'none'; }, 4000);
+
+    // Garante que a lista seja atualizada imediatamente (caso o Firebase ainda não tenha disparado)
+    setTimeout(() => renderHoje(), 100);
+  }
+
+  document.getElementById('quickImportBtn').addEventListener('click', quickImport);
 
   document.getElementById('limparTodosBtn').onclick=async()=>{if(!confirm(`Excluir TODOS do turno ${turno}?`))return;for(const r of getInscritos()){if(r._firebaseKey)await remove(ref(database,`registros/${r._firebaseKey}`))}};
   const sel=new Set();
@@ -550,35 +563,15 @@
   function expSemanal(arr,f){if(!arr.length)return alert('Nenhum dado.');if(f==='excel'){const ws=XLSX.utils.json_to_sheet(arr.map(d=>({Nome:d.nome,Atrasos:d.descontoAtraso.toFixed(2),Lançamentos:d.lancamentos.toFixed(2),Total:d.total.toFixed(2)})));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Fechamento');XLSX.writeFile(wb,'fechamento.xlsx')}else if(f==='pdf'){const{jsPDF}=window.jspdf;const doc=new jsPDF();doc.autoTable({head:[['Nome','Atrasos','Lançamentos','Total']],body:arr.map(d=>[d.nome,`R$ ${d.descontoAtraso.toFixed(2)}`,`R$ ${d.lancamentos.toFixed(2)}`,`R$ ${d.total.toFixed(2)}`])});doc.save('fechamento.pdf')}else if(f==='txt'){let t='Fechamento\n\n';arr.forEach(d=>t+=`${d.nome} - Atrasos: R$ ${d.descontoAtraso.toFixed(2)} | Lançamentos: R$ ${d.lancamentos.toFixed(2)} | Total: R$ ${d.total.toFixed(2)}\n`);const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fechamento.txt';a.click()}}
   document.getElementById('weeklyExcel').onclick=()=>expSemanal(weeklyData,'excel');document.getElementById('weeklyPdf').onclick=()=>expSemanal(weeklyData,'pdf');document.getElementById('weeklyTxt').onclick=()=>expSemanal(weeklyData,'txt');
 
-  // DOWNLOADS POR PERÍODO (NOVA VERSÃO COM CALENDÁRIO)
+  // Downloads diários
   function getRegPeriodo(inicio,fim,turnoFiltro='todos'){
-    const di=new Date(inicio+'T00:00:00-03:00');
-    const df=new Date(fim+'T23:59:59-03:00');
-    return db.filter(r=>{
-      const d=new Date(r.dataInscricao||r.dataHora);
-      return d>=di&&d<=df&&r.status!=='removido'&&(turnoFiltro==='todos'||r.turno===turnoFiltro);
-    });
+    const di=new Date(inicio+'T00:00:00-03:00');const df=new Date(fim+'T23:59:59-03:00');
+    return db.filter(r=>{const d=new Date(r.dataInscricao||r.dataHora);return d>=di&&d<=df&&r.status!=='removido'&&(turnoFiltro==='todos'||r.turno===turnoFiltro)});
   }
   function exportar(arr,f){
     if(!arr.length)return alert('Nenhum registro no período.');
-    const dados=arr.map(r=>({
-      Nome:r.nome,Turno:r.turno,
-      Status:r.status==='presente'?'Chegou':r.status==='ausente'?'Não chegou':r.status==='desistiu'?'Desistiu':'Inscrito',
-      'Data Inscrição':fmt(r.dataInscricao).split(' ')[0],
-      'Hora Chegada':r.dataPresenca?fmt(r.dataPresenca).split(' ')[1]:'-',
-      Desconto:r.status==='presente'?calcDesc(r).toFixed(2):'0.00'
-    }));
-    if(f==='excel'){
-      const ws=XLSX.utils.json_to_sheet(dados),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Presença');XLSX.writeFile(wb,'presenca_periodo.xlsx');
-    }else if(f==='pdf'){
-      const{jsPDF}=window.jspdf;const doc=new jsPDF();
-      doc.autoTable({head:[['Nome','Turno','Status','Data','Chegada','Desconto']],body:dados.map(d=>[d.Nome,d.Turno,d.Status,d['Data Inscrição'],d['Hora Chegada'],d.Desconto])});
-      doc.save('presenca_periodo.pdf');
-    }else if(f==='txt'){
-      let t='Relatório de Presença\n\n';arr.forEach((r,i)=>{const st=r.status==='presente'?'✅':r.status==='ausente'?'❌':r.status==='desistiu'?'🚫':'⏳';t+=`${i+1} ${r.nome} ${st}`;if(r.status==='presente'){t+=` ${fmt(r.dataPresenca).split(' ')[1]}`;const d=calcDesc(r);if(d>0)t+=` (R$ ${d.toFixed(2)})`}t+='\n'});
-      const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='presenca_periodo.txt';a.click();
-    }
-  }
+    const dados=arr.map(r=>({Nome:r.nome,Turno:r.turno,Status:r.status==='presente'?'Chegou':r.status==='ausente'?'Não chegou':r.status==='desistiu'?'Desistiu':'Inscrito','Data Inscrição':fmt(r.dataInscricao).split(' ')[0],'Hora Chegada':r.dataPresenca?fmt(r.dataPresenca).split(' ')[1]:'-',Desconto:r.status==='presente'?calcDesc(r).toFixed(2):'0.00'}));
+    if(f==='excel'){const ws=XLSX.utils.json_to_sheet(dados),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Presença');XLSX.writeFile(wb,'presenca_periodo.xlsx')}else if(f==='pdf'){const{jsPDF}=window.jspdf;const doc=new jsPDF();doc.autoTable({head:[['Nome','Turno','Status','Data','Chegada','Desconto']],body:dados.map(d=>[d.Nome,d.Turno,d.Status,d['Data Inscrição'],d['Hora Chegada'],d.Desconto])});doc.save('presenca_periodo.pdf')}else if(f==='txt'){let t='Relatório de Presença\n\n';arr.forEach((r,i)=>{const st=r.status==='presente'?'✅':r.status==='ausente'?'❌':r.status==='desistiu'?'🚫':'⏳';t+=`${i+1} ${r.nome} ${st}`;if(r.status==='presente'){t+=` ${fmt(r.dataPresenca).split(' ')[1]}`;const d=calcDesc(r);if(d>0)t+=` (R$ ${d.toFixed(2)})`}t+='\n'});const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='presenca_periodo.txt';a.click()}}
   function downloadPeriodo(formato){
     const inicio=document.getElementById('downloadDataInicio').value;
     const fim=document.getElementById('downloadDataFim').value;
@@ -594,7 +587,6 @@
   function renderHist(diaSel=null){const dias=[...new Set(db.filter(r=>r.status!=='removido').map(r=>new Date(r.dataInscricao||r.dataHora).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})))].sort((a,b)=>{const[da,ma,aa]=a.split('/');const[db,mb,ab]=b.split('/');return new Date(aa,ma-1,da)<new Date(ab,mb-1,db)?1:-1});const tabs=document.getElementById('dateTabs');tabs.innerHTML=dias.map(d=>`<span class="date-tab" data-dia="${d}">${d}</span>`).join('');if(!diaSel&&dias.length)diaSel=dias[0];selectedDayHistory=diaSel;tabs.querySelectorAll('.date-tab').forEach(t=>t.classList.toggle('active',t.dataset.dia===selectedDayHistory));const filt=selectedDayHistory?db.filter(r=>{const d=new Date(r.dataInscricao||r.dataHora);return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})===selectedDayHistory&&r.status!=='removido'}):db.filter(r=>r.status!=='removido');document.getElementById('historyDayList').innerHTML=filt.length?filt.map(r=>{let st=r.status==='presente'?'✅':r.status==='ausente'?'❌':r.status==='desistiu'?'🚫':'⏳';const desc=r.status==='presente'?calcDesc(r):0;return`<div class="card"><div class="info"><span class="material-icons">${r.status==='presente'?'check_circle':r.status==='ausente'?'cancel':'motorcycle'}</span><div><div class="name">${r.nome} ${st}</div><div class="datetime">Insc: ${fmt(r.dataInscricao)}</div>${r.status==='presente'?`<div class="datetime">Chegada: ${fmt(r.dataPresenca)}</div>`:''}${desc>0?`<div class="discount">Desconto R$ ${desc.toFixed(2)}</div>`:''}</div></div></div>`}).join(''):'<div class="empty">Nenhum registro</div>';}
   document.getElementById('dateTabs').onclick=e=>{if(e.target.classList.contains('date-tab'))renderHist(e.target.dataset.dia)};
 
-  // Navegação
   function setViews(m,w,dd,down,h){
     document.getElementById('mainView').style.display=m?'block':'none';
     document.getElementById('weeklyView').style.display=w?'block':'none';
